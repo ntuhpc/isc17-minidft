@@ -47,7 +47,7 @@ SUBROUTINE c_bands( iter, ik_, dr2 )
   INTEGER :: ik
   ! counter on k points
   !
-  IF ( ik_ == nks ) THEN
+  IF ( ik_ == nks ) THEN ! all k-points are done
      !
      ik_ = 0
      !
@@ -311,7 +311,7 @@ CONTAINS
        ! ... hamiltonian used in g_psi to evaluate the correction
        ! ... to the trial eigenvectors
        !
-       DO ipol = 1, npol
+       DO ipol = 1, npol ! always just 1 iteration here
           !
           h_diag(1:npw, ipol) = g2kin(1:npw) + v_of_0
           !
