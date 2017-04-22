@@ -644,18 +644,33 @@ CONTAINS
               ! 
               IF ( uspp ) THEN
                  !
+#ifdef __CUDA
+                 CALL cublas_ZGEMM( 'N', 'N', kdim, notcl, nr, ONE, &
+                    spsi( 1, 1, ir ), kdmx, vtmp, nx, beta, psi(1,1,nb1+ic-1), kdmx )
+#else
                  CALL ZGEMM( 'N', 'N', kdim, notcl, nr, ONE, &
                     spsi( 1, 1, ir ), kdmx, vtmp, nx, beta, psi(1,1,nb1+ic-1), kdmx )
+#endif
                  !
               ELSE
                  !
+#ifdef __CUDA
+                 CALL cublas_ZGEMM( 'N', 'N', kdim, notcl, nr, ONE, &
+                    psi( 1, 1, ir ), kdmx, vtmp, nx, beta, psi(1,1,nb1+ic-1), kdmx )
+#else
                  CALL ZGEMM( 'N', 'N', kdim, notcl, nr, ONE, &
                     psi( 1, 1, ir ), kdmx, vtmp, nx, beta, psi(1,1,nb1+ic-1), kdmx )
+#endif
                  !
               END IF
               !
+#ifdef __CUDA
+              CALL cublas_ZGEMM( 'N', 'N', kdim, notcl, nr, ONE, &
+                      hpsi( 1, 1, ir ), kdmx, vtmp, nx, ONE, ptmp, kdmx )
+#else
               CALL ZGEMM( 'N', 'N', kdim, notcl, nr, ONE, &
                       hpsi( 1, 1, ir ), kdmx, vtmp, nx, ONE, ptmp, kdmx )
+#endif
 
               beta = ONE
 
@@ -710,15 +725,25 @@ CONTAINS
                  !  this proc sends his block
                  ! 
                  CALL mp_bcast( vl(:,1:nc), root, intra_bgrp_comm )
+#ifdef __CUDA
+                 CALL cublas_ZGEMM( 'N', 'N', kdim, nc, nr, ONE, &
+                          spsi(1,1,ir), kdmx, vl, nx, beta, psi(1,1,nvec+ic), kdmx )
+#else
                  CALL ZGEMM( 'N', 'N', kdim, nc, nr, ONE, &
                           spsi(1,1,ir), kdmx, vl, nx, beta, psi(1,1,nvec+ic), kdmx )
+#endif
               ELSE
                  !
                  !  all other procs receive
                  ! 
                  CALL mp_bcast( vtmp(:,1:nc), root, intra_bgrp_comm )
+#ifdef __CUDA
+                 CALL cublas_ZGEMM( 'N', 'N', kdim, nc, nr, ONE, &
+                          spsi(1,1,ir), kdmx, vtmp, nx, beta, psi(1,1,nvec+ic), kdmx )
+#else
                  CALL ZGEMM( 'N', 'N', kdim, nc, nr, ONE, &
                           spsi(1,1,ir), kdmx, vtmp, nx, beta, psi(1,1,nvec+ic), kdmx )
+#endif
               END IF
               ! 
               beta = ONE
@@ -770,15 +795,25 @@ CONTAINS
                  !  this proc sends his block
                  ! 
                  CALL mp_bcast( vl(:,1:nc), root, intra_bgrp_comm )
+#ifdef __CUDA
+                 CALL cublas_ZGEMM( 'N', 'N', kdim, nc, nr, ONE, &
+                          hpsi(1,1,ir), kdmx, vl, nx, beta, psi(1,1,nvec+ic), kdmx )
+#else
                  CALL ZGEMM( 'N', 'N', kdim, nc, nr, ONE, &
                           hpsi(1,1,ir), kdmx, vl, nx, beta, psi(1,1,nvec+ic), kdmx )
+#endif
               ELSE
                  !
                  !  all other procs receive
                  ! 
                  CALL mp_bcast( vtmp(:,1:nc), root, intra_bgrp_comm )
+#ifdef __CUDA
+                 CALL cublas_ZGEMM( 'N', 'N', kdim, nc, nr, ONE, &
+                          hpsi(1,1,ir), kdmx, vtmp, nx, beta, psi(1,1,nvec+ic), kdmx )
+#else
                  CALL ZGEMM( 'N', 'N', kdim, nc, nr, ONE, &
                           hpsi(1,1,ir), kdmx, vtmp, nx, beta, psi(1,1,nvec+ic), kdmx )
+#endif
               END IF
               ! 
               beta = ONE
@@ -831,8 +866,13 @@ CONTAINS
 
            ! use blas subs. on the matrix block
 
+#ifdef __CUDA
+           CALL cublas_ZGEMM( 'C', 'N', nr, nc, kdim, ONE , &
+                       v(1,1,ir), kdmx, w(1,1,ic), kdmx, ZERO, work, nx )
+#else
            CALL ZGEMM( 'C', 'N', nr, nc, kdim, ONE , &
                        v(1,1,ir), kdmx, w(1,1,ic), kdmx, ZERO, work, nx )
+#endif
 
            ! accumulate result on dm of root proc.
 
@@ -887,8 +927,13 @@ CONTAINS
               !
               root = rank_ip( ipr, ipc )
 
+#ifdef __CUDA
+              CALL cublas_ZGEMM( 'C', 'N', nr, nc, kdim, ONE, v( 1, 1, ir ), &
+                          kdmx, w(1,1,ii), kdmx, ZERO, vtmp, nx )
+#else
               CALL ZGEMM( 'C', 'N', nr, nc, kdim, ONE, v( 1, 1, ir ), &
                           kdmx, w(1,1,ii), kdmx, ZERO, vtmp, nx )
+#endif
               !
               IF(  (desc%active_node > 0) .AND. (ipr-1 == desc%myr) .AND. (ipc-1 == desc%myc) ) THEN
                  CALL mp_root_sum( vtmp(:,1:nc), dm(:,icc:icc+nc-1), root, intra_bgrp_comm )
@@ -971,15 +1016,25 @@ CONTAINS
                  !  this proc sends his block
                  ! 
                  CALL mp_bcast( vl(:,1:nc), root, intra_bgrp_comm )
+#ifdef __CUDA
+                 CALL cublas_ZGEMM( 'N', 'N', kdim, nc, nr, ONE, &
+                          psi(1,1,ir), kdmx, vl, nx, beta, evc(1,1,ic), kdmx )
+#else
                  CALL ZGEMM( 'N', 'N', kdim, nc, nr, ONE, &
                           psi(1,1,ir), kdmx, vl, nx, beta, evc(1,1,ic), kdmx )
+#endif
               ELSE
                  !
                  !  all other procs receive
                  ! 
                  CALL mp_bcast( vtmp(:,1:nc), root, intra_bgrp_comm )
+#ifdef __CUDA
+                 CALL cublas_ZGEMM( 'N', 'N', kdim, nc, nr, ONE, &
+                          psi(1,1,ir), kdmx, vtmp, nx, beta, evc(1,1,ic), kdmx )
+#else
                  CALL ZGEMM( 'N', 'N', kdim, nc, nr, ONE, &
                           psi(1,1,ir), kdmx, vtmp, nx, beta, evc(1,1,ic), kdmx )
+#endif
               END IF
               ! 
 

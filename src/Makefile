@@ -25,9 +25,9 @@ FFLAGS = -O3 -fpp -I./ -I${MKLROOT}/include
 LD = mpiifort
 
 #ifort -openmp defines _OPENMP instead of__OPENMP
-DFLAGS    += -D__OPENMP
+DFLAGS    += -D__OPENMP -D__CUDA
 
 FFLAGS    += -qopenmp
-LDFLAGS   += -qopenmp
+LDFLAGS   += -qopenmp -lcudart -lcublas
 
 include Makefile.base

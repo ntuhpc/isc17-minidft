@@ -186,7 +186,7 @@ OBJECTS = \
 	vloc_of_g.o \
 	vloc_psi.o \
 	weights.o \
-	wfcinit.o 
+	wfcinit.o
 
 
 all: mini_dft $(if $(USE_HPCTK), mini_dft.hpcstruct)
@@ -195,7 +195,7 @@ all: mini_dft $(if $(USE_HPCTK), mini_dft.hpcstruct)
 	$(FC) $(FFLAGS) -c $<
 
 mini_dft: $(OBJECTS)
-	 $(LD) $(LDFLAGS) -o $@ $(OBJECTS) $(LIBS) $(IPM)
+	 $(LD) $(LDFLAGS) -o $@ $(OBJECTS) fortran_thunking.o $(LIBS) $(IPM)
 	 -rm -f mini_dft.hpcstruct
 
 mini_dft.hpcstruct: mini_dft
