@@ -1,7 +1,4 @@
-
 LIBS = $(FFTW_LIBS) $(SCALAPACK_LIBS) $(BLAS_LIBS)
-
-DFLAGS +=  -D__MPI
 
 CFLAGS += $(DFLAGS)
 
@@ -46,9 +43,9 @@ OBJECTS = \
 	funct.o \
 	griddim.o \
 	image_io_routines.o \
-        allocate_fft_custom.o \
-        ruotaijk.o \
-        xk_wk_collect.o \
+	allocate_fft_custom.o \
+	ruotaijk.o \
+	xk_wk_collect.o \
 	mp_base.o \
 	mp_wave.o \
 	mp_image_global_module.o \
@@ -188,7 +185,7 @@ OBJECTS = \
 	weights.o \
 	wfcinit.o
 
-
+# rules
 all: mini_dft $(if $(USE_HPCTK), mini_dft.hpcstruct)
 
 %.o : %.f90 
