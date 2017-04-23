@@ -5,12 +5,14 @@ MATH_LIBS =  ${MKLROOT}/lib/intel64/libmkl_scalapack_lp64.a -Wl,--start-group ${
 
 LIBS = $(MATH_LIBS)
 
+DFLAGS += -D__CUDA
+
 CC = mpicc
 CFLAGS = -fast -I./ -I${MKLROOT}/include
 
 FC = mpifort
-FFLAGS = -fast -Mpreprocess -I./ -I${MKLROOT}/include -mp
+FFLAGS = -fast -Mcuda -Mpreprocess -I./ -I${MKLROOT}/include -mp
 
 LD = mpifort
-LDFLAGS = -mp
+LDFLAGS = -Mcuda -mp
 

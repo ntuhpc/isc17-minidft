@@ -36,6 +36,9 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   USE descriptors,      ONLY : la_descriptor, descla_init , descla_local_dims
   USE parallel_toolkit, ONLY : zsqmred, zsqmher
   USE mp,               ONLY : mp_bcast, mp_root_sum, mp_sum, mp_barrier
+#ifdef __CUDA
+  USE cudafor
+#endif
   !
   IMPLICIT NONE
   !
@@ -83,6 +86,9 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
     ! eigenvectors of the Hamiltonian
     ! eigenvalues of the reduced hamiltonian
   COMPLEX(DP), ALLOCATABLE :: psi(:,:,:), hpsi(:,:,:), spsi(:,:,:)
+#ifdef __CUDA
+  COMPLEX(DP), ALLOCATABLE, DEVICE :: psi_d(:,:,:)
+#endif
     ! work space, contains psi
     ! the product of H and psi
     ! the product of S and psi
@@ -136,6 +142,10 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   END IF
 
   ALLOCATE(  psi( npwx, npol, nvecx ), STAT=ierr )
+#ifdef __CUDA
+  ALLOCATE(  psi_d( npwx, npol, nvecx ) )
+  psi_d = psi
+#endif
   IF( ierr /= 0 ) &
      CALL errore( ' pcegterg ',' cannot allocate psi ', ABS(ierr) )
   !
