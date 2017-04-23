@@ -9,6 +9,7 @@ tprnfor = .false.
 outdir = './'
 wfcdir = './'
 pseudo_dir = './'
+verbosity = 'debug'
 /
 &system
 ibrav = 0
