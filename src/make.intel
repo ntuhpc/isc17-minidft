@@ -1,0 +1,8 @@
+CC = mpiicc
+CFLAGS = -O3 -I./ -I${MKLROOT}/include
+
+FC = mpiifort
+FFLAGS = -O3 -fpp -I./ -I${MKLROOT}/include -qopenmp
+
+LD = mpiifort
+LDFLAGS = -qopenmp

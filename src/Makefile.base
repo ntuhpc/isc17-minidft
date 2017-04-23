@@ -1,10 +1,8 @@
-LIBS = $(FFTW_LIBS) $(SCALAPACK_LIBS) $(BLAS_LIBS)
-
 CFLAGS += $(DFLAGS)
 
-FFLAGS +=  $(FFTW_INCL) $(DFLAGS)
+FFLAGS += $(DFLAGS)
 
-OBJECTS = \
+OBJECTS += \
 	kind.o \
 	constants.o \
 	radial_grids.o \
@@ -192,7 +190,7 @@ all: mini_dft $(if $(USE_HPCTK), mini_dft.hpcstruct)
 	$(FC) $(FFLAGS) -c $<
 
 mini_dft: $(OBJECTS)
-	 $(LD) $(LDFLAGS) -o $@ $(OBJECTS) fortran_thunking.o $(LIBS) $(IPM)
+	 $(LD) $(LDFLAGS) -o $@ $(OBJECTS) $(LIBS) $(IPM)
 	 -rm -f mini_dft.hpcstruct
 
 mini_dft.hpcstruct: mini_dft

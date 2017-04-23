@@ -1,0 +1,9 @@
+CC = mpicc
+CFLAGS = -fast -I./ -I${MKLROOT}/include
+
+FC = mpifort
+FFLAGS = -fast -Mpreprocess -I./ -I${MKLROOT}/include -mp
+
+LD = mpifort
+LDFLAGS = -mp
+
