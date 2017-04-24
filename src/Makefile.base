@@ -21,6 +21,7 @@ OBJECTS += \
 	clocks.o \
 	fft_types.o \
 	fft_base.o \
+	fft_base_gpu.o \
 	random_numbers.o \
 	ions_base.o \
 	descriptors.o \
@@ -29,6 +30,7 @@ OBJECTS += \
 	environment.o \
 	error_handler.o \
 	fft_scalar.o \
+	fft_scalar_gpu.o \
 	fft_custom.o \
 	recvec.o \
 	pwcom.o \
@@ -36,7 +38,9 @@ OBJECTS += \
 	stick_set.o \
 	data_structure_custom.o \
 	fft_parallel.o \
+	fft_parallel_gpu.o \
 	fft_interfaces.o \
+	fft_interfaces_gpu.o \
 	wrappers.o \
 	funct.o \
 	griddim.o \
@@ -140,6 +144,7 @@ OBJECTS += \
 	gradcorr.o \
 	h_1psi.o \
 	h_psi.o \
+	h_psi_gpu.o \
 	hinit0.o \
 	init_at_1.o \
 	openfil.o \
@@ -180,6 +185,7 @@ OBJECTS += \
 	v_of_rho.o \
 	vloc_of_g.o \
 	vloc_psi.o \
+	vloc_psi_gpu.o \
 	weights.o \
 	wfcinit.o
 

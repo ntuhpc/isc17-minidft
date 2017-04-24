@@ -79,7 +79,7 @@
      INTEGER, INTENT(IN) :: isign
      INTEGER, INTENT(IN) :: nsl, nz, ldz
 
-     COMPLEX (DP) :: c(:), cout(:)
+     COMPLEX (DP), DEVICE :: c(:), cout(:)
 
      REAL (DP)  :: tscale
      INTEGER    :: i, err, idir, ip
@@ -170,7 +170,11 @@
      IF (isign < 0) THEN
         CALL dfftw_execute_dft( fw_planz( ip), c, cout)
         tscale = 1.0_DP / nz
-        cout( 1 : ldz * nsl ) = cout( 1 : ldz * nsl ) * tscale
+        ! TODO: fix error
+        !$cuf kernel do <<<*,*>>>
+        DO i = 1, ldz * nsl
+          cout( 1 : i ) = cout( 1 : i ) * tscale
+        END DO
      ELSE IF (isign > 0) THEN
         CALL dfftw_execute_dft( bw_planz( ip), c, cout)
      END IF
@@ -213,7 +217,7 @@
 
      INTEGER, INTENT(IN) :: isign, ldx, ldy, nx, ny, nzl
      INTEGER, OPTIONAL, INTENT(IN) :: pl2ix(:)
-     COMPLEX (DP) :: r( : )
+     COMPLEX (DP), DEVICE :: r( : )
      INTEGER :: i, k, j, err, idir, ip, kk
      REAL(DP) :: tscale
      INTEGER, SAVE :: icurrent = 1

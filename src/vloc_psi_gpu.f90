@@ -10,7 +10,7 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
   USE wvfct,   ONLY : igk
   USE mp_global,     ONLY : me_pool, me_bgrp
   USE fft_base,      ONLY : dffts, tg_gather
-  USE fft_interfaces,ONLY : fwfft, invfft
+  USE fft_interfaces_gpu ,ONLY : fwfft_gpu, invfft_gpu
 #if defined(__CUDA) && defined(__CUFFT)
   USE wavefunctions_module,  ONLY: psic_d, psic
 #else
@@ -81,7 +81,10 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
      ELSE
         !
         psic_d(:) = (0.d0, 0.d0)
-        psic_d(nls (igk(1:n))) = psi_d(1:n, ibnd)
+        !$cuf kernel do <<<*,*>>>
+        DO j = 1, n
+          psic_d(nls (igk(j))) = psi_d(j, ibnd)
+        END DO
         !
         CALL invfft ('Wave', psic_d, dffts)
         !
@@ -103,7 +106,7 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
         !
      ELSE
         !
-!$cuf kernel <<<*,*>>>
+        !$cuf kernel do <<<*,*>>>
         DO j = 1, dffts%nnr
            psic_d (j) = psic_d (j) * v(j)
         ENDDO
@@ -133,7 +136,7 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
 !         ENDDO
         !
      ELSE
-!$cuf kernel <<<*,*>>>
+         !$cuf kernel do <<<*,*>>>
         DO j = 1, n
            hpsi_d (j, ibnd)   = hpsi_d (j, ibnd)   + psic_d (nls(igk(j)))
         ENDDO

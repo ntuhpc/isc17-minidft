@@ -38,18 +38,18 @@ SUBROUTINE h_psi_gpu( lda, n, m, psi_d, hpsi_d )
   INTEGER, INTENT(IN)     :: lda, n, m
   COMPLEX(DP), INTENT(IN), DEVICE  :: psi_d(lda*npol,m) 
   COMPLEX(DP), INTENT(OUT), DEVICE :: hpsi_d(lda*npol,m)
+  INTEGER     :: ipol, ibnd, incr
   ! TODO: consider moving it elsewhere?
   REAL(DP), ALLOCATABLE, DEVICE :: g2kin_d(:)
   ALLOCATE( g2kin_d( npwx ) )
   g2kin_d = g2kin
   !
-  INTEGER     :: ipol, ibnd, incr
   !
   CALL start_clock( 'h_psi' )
   !  
   ! ... Here we apply the kinetic energy (k+G)^2 psi
   !
-  !$cuf kernel <<<*,*>>>
+  !$cuf kernel do <<<*,*>>>
   DO ibnd = 1, m
      hpsi_d (1:n, ibnd) = g2kin_d (1:n) * psi_d (1:n, ibnd)
      hpsi_d (n+1:lda,ibnd) = (0.0_dp, 0.0_dp)

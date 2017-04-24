@@ -58,7 +58,7 @@ SUBROUTINE tg_cft3s_gpu( f, dfft, isgn, use_task_groups )
   ! (Alessandro Curioni) and revised by Carlo Cavazzoni 2007.
   !
   USE fft_scalar_gpu, ONLY : cft_1z_gpu, cft_2xy_gpu
-  USE fft_base,   ONLY : fft_scatter
+  USE fft_base_gpu,   ONLY : fft_scatter_gpu
   USE kinds,      ONLY : DP
   USE fft_types,  ONLY : fft_dlay_descriptor
   USE parallel_include
@@ -75,7 +75,7 @@ SUBROUTINE tg_cft3s_gpu( f, dfft, isgn, use_task_groups )
   !
   INTEGER                    :: me_p
   INTEGER                    :: n1, n2, n3, nx1, nx2, nx3
-  COMPLEX(DP), ALLOCATABLE   :: yf(:), aux (:)
+  COMPLEX(DP), ALLOCATABLE, DEVICE   :: yf(:), aux (:)
   INTEGER                    :: planes( dfft%nr1x )
   LOGICAL                    :: use_tg
   !
@@ -271,7 +271,7 @@ CONTAINS
         !dfft%npp: number of planes per processor
         !
      !
-     USE fft_base, ONLY: fft_scatter
+     USE fft_base_gpu, ONLY: fft_scatter_gpu
      !
      INTEGER, INTENT(in) :: iopt
      !
@@ -279,17 +279,17 @@ CONTAINS
         !
         IF( use_tg ) THEN
            !
-           CALL fft_scatter( dfft, aux, nx3, dfft%nogrp*dfft%tg_nnr, f, dfft%tg_nsw, dfft%tg_npp, iopt, use_tg )
+           CALL fft_scatter_gpu( dfft, aux, nx3, dfft%nogrp*dfft%tg_nnr, f, dfft%tg_nsw, dfft%tg_npp, iopt, use_tg )
            !
         ELSE
            !
-           CALL fft_scatter( dfft, aux, nx3, dfft%nnr, f, dfft%nsw, dfft%npp, iopt )
+           CALL fft_scatter_gpu( dfft, aux, nx3, dfft%nnr, f, dfft%nsw, dfft%npp, iopt )
            !
         ENDIF
         !
      ELSEIF( iopt == 1 ) THEN
         !
-        CALL fft_scatter( dfft, aux, nx3, dfft%nnr, f, dfft%nsp, dfft%npp, iopt )
+        CALL fft_scatter_gpu( dfft, aux, nx3, dfft%nnr, f, dfft%nsp, dfft%npp, iopt )
         !
      ENDIF
      !
@@ -300,7 +300,7 @@ CONTAINS
 
   SUBROUTINE bw_scatter( iopt )
      !
-     USE fft_base, ONLY: fft_scatter
+     USE fft_base_gpu, ONLY: fft_scatter_gpu
      !
      INTEGER, INTENT(in) :: iopt
      !
@@ -308,17 +308,17 @@ CONTAINS
         !
         IF( use_tg ) THEN
            !
-           CALL fft_scatter( dfft, aux, nx3, dfft%nogrp*dfft%tg_nnr, f, dfft%tg_nsw, dfft%tg_npp, iopt, use_tg )
+           CALL fft_scatter_gpu( dfft, aux, nx3, dfft%nogrp*dfft%tg_nnr, f, dfft%tg_nsw, dfft%tg_npp, iopt, use_tg )
            !
         ELSE
            !
-           CALL fft_scatter( dfft, aux, nx3, dfft%nnr, f, dfft%nsw, dfft%npp, iopt )
+           CALL fft_scatter_gpu( dfft, aux, nx3, dfft%nnr, f, dfft%nsw, dfft%npp, iopt )
            !
         ENDIF
         !
      ELSEIF( iopt == -1 ) THEN
         !
-        CALL fft_scatter( dfft, aux, nx3, dfft%nnr, f, dfft%nsp, dfft%npp, iopt )
+        CALL fft_scatter_gpu( dfft, aux, nx3, dfft%nnr, f, dfft%nsp, dfft%npp, iopt )
         !
      ENDIF
      !

@@ -97,7 +97,7 @@
       TYPE(fft_dlay_descriptor), INTENT(IN) :: dfft
       INTEGER, OPTIONAL, INTENT(IN) :: ia
       CHARACTER(LEN=*), INTENT(IN) :: grid_type
-      COMPLEX(DP) :: f(:)
+      COMPLEX(DP), DEVICE :: f(:)
       !
       INTEGER :: imin3, imax3, np3
 
@@ -151,9 +151,9 @@
       ELSE IF( grid_type == 'CustomWave' ) THEN
          CALL tg_cft3s_gpu( f, dfft, 2, dfft%have_task_groups )
       ELSE IF( grid_type == 'Box' .AND.  dfftb%np3( ia ) > 0 ) THEN
-         call cft_b( f, dfftb%nr1, dfftb%nr2, dfftb%nr3, &
-                        dfftb%nr1x, dfftb%nr2x, dfftb%nr3x, &
-                        dfftb%imin3( ia ), dfftb%imax3( ia ), 1 )
+         !call cft_b( f, dfftb%nr1, dfftb%nr2, dfftb%nr3, &
+         !               dfftb%nr1x, dfftb%nr2x, dfftb%nr3x, &
+         !               dfftb%imin3( ia ), dfftb%imax3( ia ), 1 )
       END IF
 
 
@@ -206,7 +206,7 @@
 
       TYPE(fft_dlay_descriptor), INTENT(IN) :: dfft
       CHARACTER(LEN=*), INTENT(IN) :: grid_type
-      COMPLEX(DP) :: f(:)
+      COMPLEX(DP), DEVICE :: f(:)
 
       IF( grid_type == 'Dense' ) THEN
          IF( dfft%nr1  /= dfftp%nr1  .OR. dfft%nr2  /= dfftp%nr2  .OR. &

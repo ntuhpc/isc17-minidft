@@ -44,7 +44,7 @@
 
         PRIVATE
 
-        PUBLIC :: fft_scatter, grid_gather, grid_scatter
+        PUBLIC :: fft_scatter_gpu, grid_gather, grid_scatter
         PUBLIC :: dfftp, dffts, dfftb, fft_dlay_descriptor
         PUBLIC :: cgather_sym, cgather_smooth, cgather_custom
         PUBLIC :: cscatter_sym, cscatter_smooth, cscatter_custom
@@ -103,7 +103,7 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
   TYPE (fft_dlay_descriptor), INTENT(in) :: dfft
 
   INTEGER, INTENT(in)           :: nr3x, nxx_, isgn, ncp_ (:), npp_ (:)
-  COMPLEX (DP), INTENT(inout)   :: f_in (nxx_), f_aux (nxx_)
+  COMPLEX(DP), DEVICE, INTENT(inout)   :: f_in (nxx_), f_aux (nxx_)
   LOGICAL, OPTIONAL, INTENT(in) :: use_tg
 
 
@@ -209,21 +209,25 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
         !
         SELECT CASE ( npp_ ( gproc ) )
         CASE ( 1 )
+           !$cuf kernel do(1) <<<*,*>>>
            DO k = 1, ncp_ (me)
               f_aux (dest + (k - 1) ) =  f_in (from + (k - 1) * nr3x )
            ENDDO
         CASE ( 2 )
+           !$cuf kernel do(1) <<<*,*>>>
            DO k = 1, ncp_ (me)
               f_aux ( dest + (k - 1) * 2 - 1 + 1 ) =  f_in ( from + (k - 1) * nr3x - 1 + 1 )
               f_aux ( dest + (k - 1) * 2 - 1 + 2 ) =  f_in ( from + (k - 1) * nr3x - 1 + 2 )
            ENDDO
         CASE ( 3 )
+           !$cuf kernel do(1) <<<*,*>>>
            DO k = 1, ncp_ (me)
               f_aux ( dest + (k - 1) * 3 - 1 + 1 ) =  f_in ( from + (k - 1) * nr3x - 1 + 1 )
               f_aux ( dest + (k - 1) * 3 - 1 + 2 ) =  f_in ( from + (k - 1) * nr3x - 1 + 2 )
               f_aux ( dest + (k - 1) * 3 - 1 + 3 ) =  f_in ( from + (k - 1) * nr3x - 1 + 3 )
            ENDDO
         CASE ( 4 )
+           !$cuf kernel do(1) <<<*,*>>>
            DO k = 1, ncp_ (me)
               f_aux ( dest + (k - 1) * 4 - 1 + 1 ) =  f_in ( from + (k - 1) * nr3x - 1 + 1 )
               f_aux ( dest + (k - 1) * 4 - 1 + 2 ) =  f_in ( from + (k - 1) * nr3x - 1 + 2 )
@@ -234,6 +238,7 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
            DO k = 1, ncp_ (me)
               kdest = dest + (k - 1) * npp_ ( gproc ) - 1
               kfrom = from + (k - 1) * nr3x - 1
+              !$cuf kernel do(1) <<<*,*>>>
               DO i = 1, npp_ ( gproc )
                  f_aux ( kdest + i ) =  f_in ( kfrom + i )
               ENDDO
@@ -317,6 +322,7 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
 !$omp do private(mc,j)
         DO i = 1, dfft%nst
            mc = dfft%ismap( i )
+           !$cuf kernel do(1) <<<*,*>>>
            DO j = 1, dfft%npp( me_p )
               f_aux( mc + ( j - 1 ) * dfft%nnp ) = f_in( j + ( i - 1 ) * nppx )
            ENDDO
@@ -361,6 +367,7 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
               !
               it = ( ii + i - 1 ) * nppx
               !
+              !$cuf kernel do(1) <<<*,*>>>
               DO j = 1, npp
                  f_aux( mc + ( j - 1 ) * nnp ) = f_in( j + it )
               ENDDO
@@ -389,6 +396,7 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
 !$omp do
         DO i = 1, dfft%nst
            mc = dfft%ismap( i )
+           !$cuf kernel do(1) <<<*,*>>>
            DO j = 1, dfft%npp( me_p )
               f_in( j + ( i - 1 ) * nppx ) = f_aux( mc + ( j - 1 ) * dfft%nnp )
            ENDDO
@@ -421,6 +429,7 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
            DO i = 1, dfft%nsw( ip )
               mc = dfft%ismap( i + dfft%iss( ip ) )
               it = (ii + i - 1)*nppx
+              !$cuf kernel do(1) <<<*,*>>>
               DO j = 1, npp
                  f_in( j + it ) = f_aux( mc + ( j - 1 ) * nnp )
               ENDDO
@@ -501,21 +510,25 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
                  !
                  SELECT CASE ( npp_ ( gproc ) )
                  CASE ( 1 )
+                    !$cuf kernel do(1) <<<*,*>>>
                     DO k = 1, ncp_ (me)
                        f_in ( dest + (k - 1) * nr3x ) = f_aux ( from + k - 1 )
                     ENDDO
                  CASE ( 2 )
+                    !$cuf kernel do(1) <<<*,*>>>
                     DO k = 1, ncp_ ( me )
                        f_in ( dest + (k - 1) * nr3x - 1 + 1 ) = f_aux( from + (k - 1) * 2 - 1 + 1 )
                        f_in ( dest + (k - 1) * nr3x - 1 + 2 ) = f_aux( from + (k - 1) * 2 - 1 + 2 )
                     ENDDO
                  CASE ( 3 )
+                    !$cuf kernel do(1) <<<*,*>>>
                     DO k = 1, ncp_ ( me )
                        f_in ( dest + (k - 1) * nr3x - 1 + 1 ) = f_aux( from + (k - 1) * 3 - 1 + 1 )
                        f_in ( dest + (k - 1) * nr3x - 1 + 2 ) = f_aux( from + (k - 1) * 3 - 1 + 2 )
                        f_in ( dest + (k - 1) * nr3x - 1 + 3 ) = f_aux( from + (k - 1) * 3 - 1 + 3 )
                     ENDDO
                  CASE ( 4 )
+                    !$cuf kernel do(1) <<<*,*>>>
                     DO k = 1, ncp_ ( me )
                        f_in ( dest + (k - 1) * nr3x - 1 + 1 ) = f_aux( from + (k - 1) * 4 - 1 + 1 )
                        f_in ( dest + (k - 1) * nr3x - 1 + 2 ) = f_aux( from + (k - 1) * 4 - 1 + 2 )
@@ -526,6 +539,7 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
                     DO k = 1, ncp_ ( me )
                        kdest = dest + (k - 1) * nr3x - 1
                        kfrom = from + (k - 1) * npp_ ( gproc ) - 1
+                       !$cuf kernel do(1) <<<*,*>>>
                        DO i = 1, npp_ ( gproc )
                           f_in ( kdest + i ) = f_aux( kfrom + i )
                        ENDDO

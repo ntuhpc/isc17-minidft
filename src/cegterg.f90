@@ -87,7 +87,7 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
     ! eigenvalues of the reduced hamiltonian
   COMPLEX(DP), ALLOCATABLE :: psi(:,:,:), hpsi(:,:,:), spsi(:,:,:)
 #ifdef __CUDA
-  COMPLEX(DP), ALLOCATABLE, DEVICE :: psi_d(:,:,:), hpsi(:,:,:), spsi(:,:,:)
+  COMPLEX(DP), ALLOCATABLE, DEVICE :: psi_d(:,:,:), hpsi_d(:,:,:), spsi_d(:,:,:)
 #endif
     ! work space, contains psi
     ! the product of H and psi
