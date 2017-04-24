@@ -20,7 +20,11 @@
                     ! noncolinear case: first index
                     ! is a combined PW + spin index
      !
-     COMPLEX(DP) , ALLOCATABLE, TARGET :: &
+#if defined(__CUDA) && defined(__CUFFT)
+     COMPLEX(DP), ALLOCATABLE, TARGET, DEVICE :: &
+       psic_d(:)
+#endif
+     COMPLEX(DP), ALLOCATABLE, TARGET :: &
        psic(:), &      ! additional memory for FFT
        psic_nc(:,:)    ! as above for the noncolinear case
      !
@@ -41,6 +45,9 @@
        IF( ALLOCATED( c0_bgrp ) ) DEALLOCATE( c0_bgrp )
        IF( ALLOCATED( cm_bgrp ) ) DEALLOCATE( cm_bgrp )
        IF( ALLOCATED( phi_bgrp ) ) DEALLOCATE( phi_bgrp )
+#if defined(__CUDA) && defined(__CUFFT)
+       IF( ALLOCATED( psic_d ) ) DEALLOCATE( psic_d )
+#endif
        IF( ALLOCATED( psic_nc ) ) DEALLOCATE( psic_nc )
        IF( ALLOCATED( psic ) ) DEALLOCATE( psic )
        IF( ALLOCATED( evc ) ) DEALLOCATE( evc )

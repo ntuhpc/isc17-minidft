@@ -87,7 +87,7 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
     ! eigenvalues of the reduced hamiltonian
   COMPLEX(DP), ALLOCATABLE :: psi(:,:,:), hpsi(:,:,:), spsi(:,:,:)
 #ifdef __CUDA
-  COMPLEX(DP), ALLOCATABLE, DEVICE :: psi_d(:,:,:)
+  COMPLEX(DP), ALLOCATABLE, DEVICE :: psi_d(:,:,:), hpsi(:,:,:), spsi(:,:,:)
 #endif
     ! work space, contains psi
     ! the product of H and psi
@@ -144,17 +144,22 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   ALLOCATE(  psi( npwx, npol, nvecx ), STAT=ierr )
 #ifdef __CUDA
   ALLOCATE(  psi_d( npwx, npol, nvecx ) )
-  psi_d = psi
 #endif
   IF( ierr /= 0 ) &
      CALL errore( ' pcegterg ',' cannot allocate psi ', ABS(ierr) )
   !
   ALLOCATE( hpsi( npwx, npol, nvecx ), STAT=ierr )
+#ifdef __CUDA
+  ALLOCATE( hpsi_d( npwx, npol, nvecx ) )
+#endif
   IF( ierr /= 0 ) &
      CALL errore( ' pcegterg ',' cannot allocate hpsi ', ABS(ierr) )
   !
   IF ( uspp ) THEN
      ALLOCATE( spsi( npwx, npol, nvecx ), STAT=ierr )
+#ifdef __CUDA
+     ALLOCATE( spsi_d( npwx, npol, nvecx ) )
+#endif
      IF( ierr /= 0 ) &
         CALL errore( ' pcegterg ',' cannot allocate spsi ', ABS(ierr) )
   END IF
@@ -228,18 +233,47 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   nbase  = nvec
   conv   = .FALSE.
   !
-  IF ( uspp ) spsi = ZERO
+  IF ( uspp ) THEN
+    spsi = ZERO
+#ifdef __CUDA
+    spsi_d = spsi
+#endif
+  END IF
   !
   hpsi = ZERO
+#ifdef __CUDA
+  hpsi_d = hpsi
+#endif
   psi  = ZERO
 
   psi(:,:,1:nvec) = evc(:,:,1:nvec)
+#ifdef __CUDA
+  psi_d = psi
+#endif
   !
   ! ... hpsi contains h times the basis vectors
   !
+#ifdef __CUDA
+  CALL h_psi_gpu( npwx, npw, nvec, psi_d, hpsi_d )
+#else
   CALL h_psi( npwx, npw, nvec, psi, hpsi )
+#endif
   !
-  IF ( uspp ) CALL s_psi( npwx, npw, nvec, psi, spsi )
+  IF ( uspp ) THEN
+#ifdef __CUDA
+    CALL s_psi_gpu( npwx, npw, nvec, psi_d, spsi_d )
+#else
+    CALL s_psi( npwx, npw, nvec, psi, spsi )
+#endif
+  END IF
+
+  ! TODO: currently it copies data back here
+  !       continue to optimize code below later
+#ifdef __CUDA
+  hpsi = hpsi_d
+  psi = psi_d
+  IF ( uspp ) spsi = spsi_d
+#endif
   !
   ! ... hl contains the projection of the hamiltonian onto the reduced
   ! ... space, vl contains the eigenvectors of hl. Remember hl, vl and sl
@@ -504,10 +538,19 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   DEALLOCATE( conv )
   DEALLOCATE( ew )
   !
-  IF ( uspp ) DEALLOCATE( spsi )
+  IF ( uspp ) THEN
+    DEALLOCATE( spsi )
+#ifdef __CUDA
+    DEALLOCATE( spsi_d )
+#endif
+  END
   !
   DEALLOCATE( hpsi )
-  DEALLOCATE( psi )  
+  DEALLOCATE( psi )
+#ifdef __CUDA
+  DEALLOCATE( hpsi_d )
+  DEALLOCATE( psi_d )
+#endif
   !
   CALL stop_clock( 'cegterg' )
   !
@@ -654,7 +697,7 @@ CONTAINS
               ! 
               IF ( uspp ) THEN
                  !
-#ifdef __CUDA
+#if defined(__CUDA) && defined(__CUBLAS)
                  CALL cublas_ZGEMM( 'N', 'N', kdim, notcl, nr, ONE, &
                     spsi( 1, 1, ir ), kdmx, vtmp, nx, beta, psi(1,1,nb1+ic-1), kdmx )
 #else
@@ -664,7 +707,7 @@ CONTAINS
                  !
               ELSE
                  !
-#ifdef __CUDA
+#if defined(__CUDA) && defined(__CUBLAS)
                  CALL cublas_ZGEMM( 'N', 'N', kdim, notcl, nr, ONE, &
                     psi( 1, 1, ir ), kdmx, vtmp, nx, beta, psi(1,1,nb1+ic-1), kdmx )
 #else
@@ -674,7 +717,7 @@ CONTAINS
                  !
               END IF
               !
-#ifdef __CUDA
+#if defined(__CUDA) && defined(__CUBLAS)
               CALL cublas_ZGEMM( 'N', 'N', kdim, notcl, nr, ONE, &
                       hpsi( 1, 1, ir ), kdmx, vtmp, nx, ONE, ptmp, kdmx )
 #else
@@ -735,7 +778,7 @@ CONTAINS
                  !  this proc sends his block
                  ! 
                  CALL mp_bcast( vl(:,1:nc), root, intra_bgrp_comm )
-#ifdef __CUDA
+#if defined(__CUDA) && defined(__CUBLAS)
                  CALL cublas_ZGEMM( 'N', 'N', kdim, nc, nr, ONE, &
                           spsi(1,1,ir), kdmx, vl, nx, beta, psi(1,1,nvec+ic), kdmx )
 #else
@@ -747,7 +790,7 @@ CONTAINS
                  !  all other procs receive
                  ! 
                  CALL mp_bcast( vtmp(:,1:nc), root, intra_bgrp_comm )
-#ifdef __CUDA
+#if defined(__CUDA) && defined(__CUBLAS)
                  CALL cublas_ZGEMM( 'N', 'N', kdim, nc, nr, ONE, &
                           spsi(1,1,ir), kdmx, vtmp, nx, beta, psi(1,1,nvec+ic), kdmx )
 #else
@@ -805,7 +848,7 @@ CONTAINS
                  !  this proc sends his block
                  ! 
                  CALL mp_bcast( vl(:,1:nc), root, intra_bgrp_comm )
-#ifdef __CUDA
+#if defined(__CUDA) && defined(__CUBLAS)
                  CALL cublas_ZGEMM( 'N', 'N', kdim, nc, nr, ONE, &
                           hpsi(1,1,ir), kdmx, vl, nx, beta, psi(1,1,nvec+ic), kdmx )
 #else
@@ -817,7 +860,7 @@ CONTAINS
                  !  all other procs receive
                  ! 
                  CALL mp_bcast( vtmp(:,1:nc), root, intra_bgrp_comm )
-#ifdef __CUDA
+#if defined(__CUDA) && defined(__CUBLAS)
                  CALL cublas_ZGEMM( 'N', 'N', kdim, nc, nr, ONE, &
                           hpsi(1,1,ir), kdmx, vtmp, nx, beta, psi(1,1,nvec+ic), kdmx )
 #else
@@ -876,7 +919,7 @@ CONTAINS
 
            ! use blas subs. on the matrix block
 
-#ifdef __CUDA
+#if defined(__CUDA) && defined(__CUBLAS)
            CALL cublas_ZGEMM( 'C', 'N', nr, nc, kdim, ONE , &
                        v(1,1,ir), kdmx, w(1,1,ic), kdmx, ZERO, work, nx )
 #else
@@ -937,7 +980,7 @@ CONTAINS
               !
               root = rank_ip( ipr, ipc )
 
-#ifdef __CUDA
+#if defined(__CUDA) && defined(__CUBLAS)
               CALL cublas_ZGEMM( 'C', 'N', nr, nc, kdim, ONE, v( 1, 1, ir ), &
                           kdmx, w(1,1,ii), kdmx, ZERO, vtmp, nx )
 #else
@@ -1026,7 +1069,7 @@ CONTAINS
                  !  this proc sends his block
                  ! 
                  CALL mp_bcast( vl(:,1:nc), root, intra_bgrp_comm )
-#ifdef __CUDA
+#if defined(__CUDA) && defined(__CUBLAS)
                  CALL cublas_ZGEMM( 'N', 'N', kdim, nc, nr, ONE, &
                           psi(1,1,ir), kdmx, vl, nx, beta, evc(1,1,ic), kdmx )
 #else
@@ -1038,7 +1081,7 @@ CONTAINS
                  !  all other procs receive
                  ! 
                  CALL mp_bcast( vtmp(:,1:nc), root, intra_bgrp_comm )
-#ifdef __CUDA
+#if defined(__CUDA) && defined(__CUBLAS)
                  CALL cublas_ZGEMM( 'N', 'N', kdim, nc, nr, ONE, &
                           psi(1,1,ir), kdmx, vtmp, nx, beta, evc(1,1,ic), kdmx )
 #else
