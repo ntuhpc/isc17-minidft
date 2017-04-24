@@ -543,7 +543,7 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
 #ifdef __CUDA
     DEALLOCATE( spsi_d )
 #endif
-  END
+  END IF
   !
   DEALLOCATE( hpsi )
   DEALLOCATE( psi )
