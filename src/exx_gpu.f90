@@ -103,90 +103,90 @@ MODULE exx
   REAL(DP)  :: exx_dual = 4.0_DP! dual for the custom grid
 CONTAINS
   !------------------------------------------------------------------------
-  SUBROUTINE exx_grid_convert( psi, npw, fft, psi_t, sign, igkt )
-  !------------------------------------------------------------------------
+  ! SUBROUTINE exx_grid_convert( psi, npw, fft, psi_t, sign, igkt )
+  ! !------------------------------------------------------------------------
 
-    USE mp_global,  ONLY : me_bgrp, nproc_bgrp, intra_bgrp_comm, root_bgrp
-    USE mp_wave,    ONLY : mergewf, splitwf
-    USE gvect, ONLY : ig_l2g
+  !   USE mp_global,  ONLY : me_bgrp, nproc_bgrp, intra_bgrp_comm, root_bgrp
+  !   USE mp_wave,    ONLY : mergewf, splitwf
+  !   USE gvect, ONLY : ig_l2g
 
-    IMPLICIT NONE
+  !   IMPLICIT NONE
 
-    INTEGER, INTENT(IN) :: npw
-    COMPLEX(kind=DP), INTENT(IN) :: psi(npw)
-    COMPLEX(kind=DP), INTENT(INOUT) :: psi_t(:)
-    INTEGER, OPTIONAL, INTENT(INOUT) :: igkt(:)
-    INTEGER, INTENT(IN) :: sign
-    TYPE(fft_cus), INTENT(IN) :: fft
+  !   INTEGER, INTENT(IN) :: npw
+  !   COMPLEX(kind=DP), INTENT(IN) :: psi(npw)
+  !   COMPLEX(kind=DP), INTENT(INOUT) :: psi_t(:)
+  !   INTEGER, OPTIONAL, INTENT(INOUT) :: igkt(:)
+  !   INTEGER, INTENT(IN) :: sign
+  !   TYPE(fft_cus), INTENT(IN) :: fft
     
-    COMPLEX(kind=DP), ALLOCATABLE :: evc_g(:)
-    INTEGER :: ig
+  !   COMPLEX(kind=DP), ALLOCATABLE :: evc_g(:)
+  !   INTEGER :: ig
     
-    ALLOCATE( evc_g( fft%ngmt_g ) )
+  !   ALLOCATE( evc_g( fft%ngmt_g ) )
     
-    IF(sign > 0 .AND. PRESENT(igkt) ) THEN
-       DO ig=1, fft%ngmt
-          igkt(ig)=ig
-       ENDDO
-    ENDIF
+  !   IF(sign > 0 .AND. PRESENT(igkt) ) THEN
+  !      DO ig=1, fft%ngmt
+  !         igkt(ig)=ig
+  !      ENDDO
+  !   ENDIF
     
-    IF( fft%dual_t==4.d0) THEN
-       psi_t(1:fft%npwt)=psi(1:fft%npwt)
-    ELSE
-       IF (sign > 0 ) THEN
-          CALL mergewf(psi, evc_g, npw, ig_l2g, me_bgrp, nproc_bgrp,&
-               & root_bgrp, intra_bgrp_comm)  
-          CALL splitwf(psi_t(:), evc_g, fft%npwt, fft%ig_l2gt, me_bgrp,&
-               & nproc_bgrp, root_bgrp, intra_bgrp_comm)  
-       ELSE
-          CALL mergewf(psi, evc_g, fft%npwt, fft%ig_l2gt, me_bgrp,&
-               & nproc_bgrp, root_bgrp, intra_bgrp_comm)  
-          CALL splitwf(psi_t, evc_g, npw, ig_l2g, me_bgrp, nproc_bgrp,&
-               & root_bgrp, intra_bgrp_comm)  
-       ENDIF
-    ENDIF
+  !   IF( fft%dual_t==4.d0) THEN
+  !      psi_t(1:fft%npwt)=psi(1:fft%npwt)
+  !   ELSE
+  !      IF (sign > 0 ) THEN
+  !         CALL mergewf(psi, evc_g, npw, ig_l2g, me_bgrp, nproc_bgrp,&
+  !              & root_bgrp, intra_bgrp_comm)  
+  !         CALL splitwf(psi_t(:), evc_g, fft%npwt, fft%ig_l2gt, me_bgrp,&
+  !              & nproc_bgrp, root_bgrp, intra_bgrp_comm)  
+  !      ELSE
+  !         CALL mergewf(psi, evc_g, fft%npwt, fft%ig_l2gt, me_bgrp,&
+  !              & nproc_bgrp, root_bgrp, intra_bgrp_comm)  
+  !         CALL splitwf(psi_t, evc_g, npw, ig_l2g, me_bgrp, nproc_bgrp,&
+  !              & root_bgrp, intra_bgrp_comm)  
+  !      ENDIF
+  !   ENDIF
 
-    DEALLOCATE( evc_g ) 
+  !   DEALLOCATE( evc_g ) 
 
-  END SUBROUTINE exx_grid_convert
+  ! END SUBROUTINE exx_grid_convert
   !------------------------------------------------------------------------
-  SUBROUTINE exx_fft_create ()
-  !------------------------------------------------------------------------
+  ! SUBROUTINE exx_fft_create ()
+  ! !------------------------------------------------------------------------
     
-    USE wvfct,        ONLY : ecutwfc
-    USE gvect,        ONLY : ecutrho
+  !   USE wvfct,        ONLY : ecutwfc
+  !   USE gvect,        ONLY : ecutrho
 
-    IMPLICIT NONE
+  !   IMPLICIT NONE
 
-    IF(ecutfock <= 0.0_DP) ecutfock = ecutrho
+  !   IF(ecutfock <= 0.0_DP) ecutfock = ecutrho
 
-    IF(ecutfock < ecutwfc) CALL errore('exx_fft_create', 'ecutfock can&
-         &not be smaller than ecutwfc!', 1) 
+  !   IF(ecutfock < ecutwfc) CALL errore('exx_fft_create', 'ecutfock can&
+  !        &not be smaller than ecutwfc!', 1) 
 
-    ! Initalise the g2r grid that allows us to put the wavefunction
-    ! onto the new (smaller) grid for rho.
-    exx_fft_g2r%ecutt=ecutwfc
-    exx_fft_g2r%dual_t=ecutfock/ecutwfc
-    CALL allocate_fft_custom(exx_fft_g2r)
+  !   ! Initalise the g2r grid that allows us to put the wavefunction
+  !   ! onto the new (smaller) grid for rho.
+  !   exx_fft_g2r%ecutt=ecutwfc
+  !   exx_fft_g2r%dual_t=ecutfock/ecutwfc
+  !   CALL allocate_fft_custom(exx_fft_g2r)
 
-    ! Initalise the r2g grid that we then use when applying the Fock
-    ! operator in our new restricted space.
-    exx_fft_r2g%ecutt=ecutfock/exx_dual
-    exx_fft_r2g%dual_t=exx_dual
-    CALL allocate_fft_custom(exx_fft_r2g)
+  !   ! Initalise the r2g grid that we then use when applying the Fock
+  !   ! operator in our new restricted space.
+  !   exx_fft_r2g%ecutt=ecutfock/exx_dual
+  !   exx_fft_r2g%dual_t=exx_dual
+  !   CALL allocate_fft_custom(exx_fft_r2g)
 
-  END SUBROUTINE exx_fft_create
+  ! END SUBROUTINE exx_fft_create
   !------------------------------------------------------------------------
-  SUBROUTINE exx_fft_destroy ()
-  !------------------------------------------------------------------------
-    USE fft_custom,  ONLY : deallocate_fft_custom
+  ! SUBROUTINE exx_fft_destroy ()
+  ! !------------------------------------------------------------------------
+  !   USE fft_custom,  ONLY : deallocate_fft_custom
 
-    IMPLICIT NONE
+  !   IMPLICIT NONE
 
-    CALL deallocate_fft_custom(exx_fft_g2r)
-    CALL deallocate_fft_custom(exx_fft_r2g)
+  !   CALL deallocate_fft_custom(exx_fft_g2r)
+  !   CALL deallocate_fft_custom(exx_fft_r2g)
 
-  END SUBROUTINE exx_fft_destroy
+  ! END SUBROUTINE exx_fft_destroy
   !------------------------------------------------------------------------
   SUBROUTINE deallocate_exx ()
   !------------------------------------------------------------------------
@@ -581,36 +581,36 @@ CONTAINS
   end subroutine exx_grid_check
 
   !------------------------------------------------------------------------
-  subroutine exx_restart(l_exx_was_active)
-  !------------------------------------------------------------------------
-    !This subroutine is called when restarting an exx calculation
-    use funct,                ONLY : get_exx_fraction, start_exx, exx_is_active, &
-                                     get_screening_parameter
-    USE fft_base,             ONLY : dffts
-    USE io_global,            ONLY : stdout
+!   subroutine exx_restart(l_exx_was_active)
+!   !------------------------------------------------------------------------
+!     !This subroutine is called when restarting an exx calculation
+!     use funct,                ONLY : get_exx_fraction, start_exx, exx_is_active, &
+!                                      get_screening_parameter
+!     USE fft_base,             ONLY : dffts
+!     USE io_global,            ONLY : stdout
 
-    implicit none
-    logical, intent(in) :: l_exx_was_active
-    logical :: exst
+!     implicit none
+!     logical, intent(in) :: l_exx_was_active
+!     logical :: exst
 
-    if (.not. l_exx_was_active ) return ! nothing had happpened yet
-    !!
-    exx_nwordwfc=2*dffts%nnr
-    !iunexx = find_free_unit()
-    !call diropn(iunexx,'exx', exx_nwordwfc, exst) 
-    erfc_scrlen = get_screening_parameter()
-    exxdiv = exx_divergence() 
-    exxalfa = get_exx_fraction()
-#ifdef EXXDEBUG
-    write (stdout,*) " ! EXXALFA SET TO ", exxalfa
-#endif
-    call start_exx
-    call weights()
-    call exxinit()
-    fock0 = exxenergy2()
+!     if (.not. l_exx_was_active ) return ! nothing had happpened yet
+!     !!
+!     exx_nwordwfc=2*dffts%nnr
+!     !iunexx = find_free_unit()
+!     !call diropn(iunexx,'exx', exx_nwordwfc, exst) 
+!     erfc_scrlen = get_screening_parameter()
+!     exxdiv = exx_divergence() 
+!     exxalfa = get_exx_fraction()
+! #ifdef EXXDEBUG
+!     write (stdout,*) " ! EXXALFA SET TO ", exxalfa
+! #endif
+!     call start_exx
+!     call weights()
+!     call exxinit()
+!     fock0 = exxenergy2()
  
-    return
-  end subroutine exx_restart
+!     return
+!   end subroutine exx_restart
 
 !------------------------------------------------------------------------
 subroutine exxinit()

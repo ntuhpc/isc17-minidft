@@ -7,7 +7,7 @@
 !
 !
 !----------------------------------------------------------------------------
-SUBROUTINE add_vuspsi( lda, n, m, psi, hpsi )
+SUBROUTINE add_vuspsi_gpu( lda, n, m, psi, hpsi )
   !----------------------------------------------------------------------------
   !
   !    This routine applies the Ultra-Soft Hamiltonian to a
@@ -45,7 +45,7 @@ SUBROUTINE add_vuspsi( lda, n, m, psi, hpsi )
   !
   CALL start_clock( 'add_vuspsi' )  
   !
-     CALL add_vuspsi_k()
+     CALL add_vuspsi_k_gpu()
   !
   CALL stop_clock( 'add_vuspsi' )  
   !
@@ -56,7 +56,7 @@ SUBROUTINE add_vuspsi( lda, n, m, psi, hpsi )
      !-----------------------------------------------------------------------
      !
      !-----------------------------------------------------------------------
-     SUBROUTINE add_vuspsi_k()
+     SUBROUTINE add_vuspsi_k_gpu()
        !-----------------------------------------------------------------------
        !
        IMPLICIT NONE
@@ -108,9 +108,9 @@ SUBROUTINE add_vuspsi( lda, n, m, psi, hpsi )
        !
        RETURN
        !
-     END SUBROUTINE add_vuspsi_k
+     END SUBROUTINE add_vuspsi_k_gpu
      !  
      !-----------------------------------------------------------------------
      !  
      !  
-END SUBROUTINE add_vuspsi
+END SUBROUTINE add_vuspsi_gpu

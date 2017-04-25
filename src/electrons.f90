@@ -46,7 +46,7 @@ SUBROUTINE electrons()
   USE buffers,              ONLY : save_buffer
   USE extfield,             ONLY : tefield, etotefield
   USE exx,                  ONLY : exxinit, exxenergy2, &
-                                   fock0, fock1, fock2, dexx, exx_restart
+                                   fock0, fock1, fock2, dexx
   USE funct,                ONLY : dft_is_hybrid, exx_is_active
   USE wavefunctions_module, ONLY : evc, psic
   USE spin_orb,             ONLY : domag

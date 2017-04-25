@@ -7,7 +7,7 @@
 !
 !
 !----------------------------------------------------------------------------
-SUBROUTINE s_psi( lda, n, m, psi, spsi )
+SUBROUTINE s_psi_gpu( lda, n, m, psi, spsi )
   !----------------------------------------------------------------------------
   !
   ! ... This routine applies the S matrix to m wavefunctions psi
@@ -46,4 +46,4 @@ SUBROUTINE s_psi( lda, n, m, psi, spsi )
   RETURN
   !
 
-END SUBROUTINE s_psi
+END SUBROUTINE s_psi_gpu
