@@ -88,7 +88,7 @@
 !
       USE kinds,         ONLY: DP
       use fft_base,      only: dfftp, dffts, dfftb
-      use fft_scalar,    only: cft_b
+    !   use fft_scalar,    only: cft_b
       use fft_parallel,  only: tg_cft3s
       USE fft_types,     only: fft_dlay_descriptor
 
@@ -119,18 +119,18 @@
              dfft%nr2x /= dffts%nr2x .OR. dfft%nr3x /= dffts%nr3x ) &
          CALL errore( ' invfft ', ' inconsistent descriptor for Wave fft ' , 1 )
          call start_clock('fftw')
-      ELSE IF( grid_type == 'Box' ) THEN
-         IF( dfft%nr1  /= dfftb%nr1  .OR. dfft%nr2  /= dfftb%nr2  .OR. &
-             dfft%nr3  /= dfftb%nr3  .OR. dfft%nr1x /= dfftb%nr1x .OR. &
-             dfft%nr2x /= dfftb%nr2x .OR. dfft%nr3x /= dfftb%nr3x ) &
-         CALL errore( ' invfft ', ' inconsistent descriptor for Box fft ', 1 )
-!$omp master
-         !
-         ! clocks called inside a parallel region do not work properly!
-         ! in the future we probably need a thread safe version of the clock
-         !
-         call start_clock( 'fftb' )
-!$omp end master 
+!       ELSE IF( grid_type == 'Box' ) THEN
+!          IF( dfft%nr1  /= dfftb%nr1  .OR. dfft%nr2  /= dfftb%nr2  .OR. &
+!              dfft%nr3  /= dfftb%nr3  .OR. dfft%nr1x /= dfftb%nr1x .OR. &
+!              dfft%nr2x /= dfftb%nr2x .OR. dfft%nr3x /= dfftb%nr3x ) &
+!          CALL errore( ' invfft ', ' inconsistent descriptor for Box fft ', 1 )
+! !$omp master
+!          !
+!          ! clocks called inside a parallel region do not work properly!
+!          ! in the future we probably need a thread safe version of the clock
+!          !
+!          call start_clock( 'fftb' )
+! !$omp end master 
       ELSE IF( grid_type == 'Custom' ) THEN
          call start_clock('fftc')
       ELSE IF( grid_type == 'CustomWave' ) THEN
@@ -150,10 +150,10 @@
          CALL tg_cft3s( f, dfft, 1 )
       ELSE IF( grid_type == 'CustomWave' ) THEN
          CALL tg_cft3s( f, dfft, 2, dfft%have_task_groups )
-      ELSE IF( grid_type == 'Box' .AND.  dfftb%np3( ia ) > 0 ) THEN
-         call cft_b( f, dfftb%nr1, dfftb%nr2, dfftb%nr3, &
-                        dfftb%nr1x, dfftb%nr2x, dfftb%nr3x, &
-                        dfftb%imin3( ia ), dfftb%imax3( ia ), 1 )
+    !   ELSE IF( grid_type == 'Box' .AND.  dfftb%np3( ia ) > 0 ) THEN
+    !      call cft_b( f, dfftb%nr1, dfftb%nr2, dfftb%nr3, &
+    !                     dfftb%nr1x, dfftb%nr2x, dfftb%nr3x, &
+    !                     dfftb%imin3( ia ), dfftb%imax3( ia ), 1 )
       END IF
 
 
@@ -163,10 +163,10 @@
          call stop_clock( 'ffts' )
       ELSE IF( grid_type == 'Wave' ) THEN
          call stop_clock('fftw')
-      ELSE IF( grid_type == 'Box' ) THEN
-!$omp master
-         call stop_clock( 'fftb' )
-!$omp end master
+!       ELSE IF( grid_type == 'Box' ) THEN
+! !$omp master
+!          call stop_clock( 'fftb' )
+! !$omp end master
       ELSE IF( grid_type == 'Custom' ) THEN
          call stop_clock('fftc')
       ELSE IF( grid_type == 'CustomWave' ) THEN

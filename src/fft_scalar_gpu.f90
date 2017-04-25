@@ -27,7 +27,7 @@
         PRIVATE
         PUBLIC :: cft_1z_gpu, cft_2xy_gpu
         PUBLIC :: good_fft_dimension, allowed, good_fft_order
-        PUBLIC :: cft_b
+        ! PUBLIC :: cft_b
 
 ! ...   Local Parameter
 
@@ -380,96 +380,96 @@
    END SUBROUTINE cft_2xy_gpu
 
 
-   SUBROUTINE cft_b ( f, nx, ny, nz, ldx, ldy, ldz, imin3, imax3, sgn )
+!    SUBROUTINE cft_b ( f, nx, ny, nz, ldx, ldy, ldz, imin3, imax3, sgn )
 
-!     driver routine for 3d complex fft's on box grid, parallel case
-!     fft along xy is done only on planes that correspond to dense grid
-!     planes on the current processor, i.e. planes with imin3 <= nz <= imax3
-!     implemented for essl, fftw, scsl, complib, only for sgn=1 (f(R) => f(G))
-!     (beware: here the "essl" convention for the sign of the fft is used!)
-!
-      implicit none
-      integer nx,ny,nz,ldx,ldy,ldz,imin3,imax3,sgn
-      complex(dp) :: f(:)
+! !     driver routine for 3d complex fft's on box grid, parallel case
+! !     fft along xy is done only on planes that correspond to dense grid
+! !     planes on the current processor, i.e. planes with imin3 <= nz <= imax3
+! !     implemented for essl, fftw, scsl, complib, only for sgn=1 (f(R) => f(G))
+! !     (beware: here the "essl" convention for the sign of the fft is used!)
+! !
+!       implicit none
+!       integer nx,ny,nz,ldx,ldy,ldz,imin3,imax3,sgn
+!       complex(dp) :: f(:)
 
-      integer isign, naux, ibid, nplanes, nstart, k
-      real(DP) :: tscale
+!       integer isign, naux, ibid, nplanes, nstart, k
+!       real(DP) :: tscale
 
-      integer :: ip, i
-      integer, save :: icurrent = 1
-      integer, save :: dims( 4, ndims ) = -1
-
-
-      C_POINTER, save :: bw_planz(  ndims ) = 0
-      C_POINTER, save :: bw_planx(  ndims ) = 0
-      C_POINTER, save :: bw_plany(  ndims ) = 0
-      C_POINTER, save :: bw_planxy( ndims ) = 0
+!       integer :: ip, i
+!       integer, save :: icurrent = 1
+!       integer, save :: dims( 4, ndims ) = -1
 
 
-      isign = -sgn
-      tscale = 1.0_DP
-
-      if ( isign > 0 ) then
-         call errore('cft_b','not implemented',isign)
-      end if
-!
-! 2d fft on xy planes - only needed planes are transformed
-! note that all others are left in an unusable state
-!
-      nplanes = imax3 - imin3 + 1
-      nstart  = ( imin3 - 1 ) * ldx * ldy + 1
-
-      !
-      !   Here initialize table only if necessary
-      !
-
-      ip = -1
-      DO i = 1, ndims
-
-        !   first check if there is already a table initialized
-        !   for this combination of parameters
-
-        IF ( ( nx == dims(1,i) ) .and. ( ny == dims(2,i) ) .and. &
-             ( nz == dims(3,i) ) .and. ( nplanes == dims(4,i) ) ) THEN
-           ip = i
-           EXIT
-        END IF
-
-      END DO
-
-      IF( ip == -1 ) THEN
-
-        !   no table exist for these parameters
-        !   initialize a new one
+!       C_POINTER, save :: bw_planz(  ndims ) = 0
+!       C_POINTER, save :: bw_planx(  ndims ) = 0
+!       C_POINTER, save :: bw_plany(  ndims ) = 0
+!       C_POINTER, save :: bw_planxy( ndims ) = 0
 
 
-        if ( bw_planz(icurrent) /= 0 ) &
-             call dfftw_destroy_plan(bw_planz(icurrent))
-        call dfftw_plan_many_dft( bw_planz(icurrent), 1, nz, ldx*ldy, &
-             f(1:), (/SIZE(f)/), ldx*ldy, 1, f(1:), (/SIZE(f)/), ldx*ldy, 1, &
-             1, FFTW_ESTIMATE )
+!       isign = -sgn
+!       tscale = 1.0_DP
 
-        if ( bw_planxy(icurrent) /= 0 ) &
-             call dfftw_destroy_plan(bw_planxy(icurrent))
-        call dfftw_plan_many_dft( bw_planxy(icurrent), 2, (/nx, ny/), nplanes,&
-             f(nstart:),  (/ldx, ldy/), 1, ldx*ldy, f(nstart:), (/ldx, ldy/), &
-             1, ldx*ldy, 1, FFTW_ESTIMATE )
+!       if ( isign > 0 ) then
+!          call errore('cft_b','not implemented',isign)
+!       end if
+! !
+! ! 2d fft on xy planes - only needed planes are transformed
+! ! note that all others are left in an unusable state
+! !
+!       nplanes = imax3 - imin3 + 1
+!       nstart  = ( imin3 - 1 ) * ldx * ldy + 1
+
+!       !
+!       !   Here initialize table only if necessary
+!       !
+
+!       ip = -1
+!       DO i = 1, ndims
+
+!         !   first check if there is already a table initialized
+!         !   for this combination of parameters
+
+!         IF ( ( nx == dims(1,i) ) .and. ( ny == dims(2,i) ) .and. &
+!              ( nz == dims(3,i) ) .and. ( nplanes == dims(4,i) ) ) THEN
+!            ip = i
+!            EXIT
+!         END IF
+
+!       END DO
+
+!       IF( ip == -1 ) THEN
+
+!         !   no table exist for these parameters
+!         !   initialize a new one
 
 
-        dims(1,icurrent) = nx; dims(2,icurrent) = ny
-        dims(3,icurrent) = nz; dims(4,icurrent) = nplanes
-        ip = icurrent
-        icurrent = MOD( icurrent, ndims ) + 1
+!         if ( bw_planz(icurrent) /= 0 ) &
+!              call dfftw_destroy_plan(bw_planz(icurrent))
+!         call dfftw_plan_many_dft( bw_planz(icurrent), 1, nz, ldx*ldy, &
+!              f(1:), (/SIZE(f)/), ldx*ldy, 1, f(1:), (/SIZE(f)/), ldx*ldy, 1, &
+!              1, FFTW_ESTIMATE )
 
-      END IF
+!         if ( bw_planxy(icurrent) /= 0 ) &
+!              call dfftw_destroy_plan(bw_planxy(icurrent))
+!         call dfftw_plan_many_dft( bw_planxy(icurrent), 2, (/nx, ny/), nplanes,&
+!              f(nstart:),  (/ldx, ldy/), 1, ldx*ldy, f(nstart:), (/ldx, ldy/), &
+!              1, ldx*ldy, 1, FFTW_ESTIMATE )
+
+
+!         dims(1,icurrent) = nx; dims(2,icurrent) = ny
+!         dims(3,icurrent) = nz; dims(4,icurrent) = nplanes
+!         ip = icurrent
+!         icurrent = MOD( icurrent, ndims ) + 1
+
+!       END IF
 
 
 
-      call dfftw_execute_dft(bw_planz(ip), f(1:), f(1:))
-      call dfftw_execute_dft(bw_planxy(ip), f(nstart:), f(nstart:))
+!       call dfftw_execute_dft(bw_planz(ip), f(1:), f(1:))
+!       call dfftw_execute_dft(bw_planxy(ip), f(nstart:), f(nstart:))
 
-     RETURN
-   END SUBROUTINE cft_b
+!      RETURN
+!    END SUBROUTINE cft_b
 !!$
 !!$!
 !!$!=----------------------------------------------------------------------=!
