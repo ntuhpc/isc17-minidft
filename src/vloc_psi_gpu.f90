@@ -86,7 +86,7 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
           psic_d(nls_d(igk_d(j))) = psi_d(j, ibnd)
         END DO
         !
-        CALL invfft ('Wave', psic_d, dffts)
+        CALL invfft_gpu ('Wave', psic_d, dffts)
         !
      ENDIF
      !
@@ -111,7 +111,7 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
            psic_d (j) = psic_d (j) * v(j)
         ENDDO
         !
-        CALL fwfft ('Wave', psic_d, dffts)
+        CALL fwfft_gpu ('Wave', psic_d, dffts)
         !
      ENDIF
      !

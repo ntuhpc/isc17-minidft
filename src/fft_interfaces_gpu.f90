@@ -17,7 +17,7 @@
    PUBLIC :: fwfft_gpu, invfft_gpu
 
    INTERFACE invfft_gpu
-      SUBROUTINE invfft_x( grid_type, f, dfft, ia )
+      SUBROUTINE invfft_x_gpu( grid_type, f, dfft, ia )
          USE fft_types,  only: fft_dlay_descriptor
          USE kinds,      ONLY: DP
          IMPLICIT NONE
@@ -29,7 +29,7 @@
    END INTERFACE
 
    INTERFACE fwfft_gpu
-      SUBROUTINE fwfft_x( grid_type, f, dfft )
+      SUBROUTINE fwfft_x_gpu( grid_type, f, dfft )
          USE fft_types,  only: fft_dlay_descriptor
          USE kinds,      ONLY: DP
          IMPLICIT NONE
@@ -56,7 +56,7 @@
 !  ----------------------------------------------
 
 !-----------------------------------------------------------------------
-  subroutine invfft_x( grid_type, f, dfft, ia )
+  subroutine invfft_x_gpu( grid_type, f, dfft, ia )
 !-----------------------------------------------------------------------
 ! grid_type = 'Dense'
 !   inverse fourier transform of potentials and charge density
@@ -174,10 +174,10 @@
       END IF
 !
       return
-      end subroutine invfft_x
+      end subroutine invfft_x_gpu
 
 !-----------------------------------------------------------------------
-      subroutine fwfft_x( grid_type, f, dfft )
+      subroutine fwfft_x_gpu( grid_type, f, dfft )
 !-----------------------------------------------------------------------
 ! grid_type = 'Dense'
 !   forward fourier transform of potentials and charge density 
@@ -261,4 +261,4 @@
       END IF
 
       return
-      end subroutine fwfft_x
+      end subroutine fwfft_x_gpu

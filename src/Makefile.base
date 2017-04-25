@@ -109,6 +109,7 @@ OBJECTS += \
 	buffers.o \
 	becmod.o \
 	add_vuspsi.o \
+	add_vuspsi_gpu.o \
 	allocate_fft.o \
 	allocate_locpot.o \
 	allocate_nlpot.o \
@@ -133,6 +134,7 @@ OBJECTS += \
 	newd.o \
         coulomb_vcut.o \
         exx.o \
+		exx_gpu.o \
 	clean_pw.o \
 	input.o \
 	electrons.o \
@@ -172,6 +174,7 @@ OBJECTS += \
 	rotate_wfc_k.o \
 	s_1psi.o \
 	s_psi.o \
+	s_psi_gpu.o \
 	set_kup_and_kdw.o \
 	set_rhoc.o \
 	set_vrs.o \
