@@ -15,7 +15,7 @@ SUBROUTINE allocate_fft
   !
   USE io_global, ONLY : stdout
   USE gvect,     ONLY : ngm, g, gg, nl, nlm, mill, igtongl
-  USE gvecs,   ONLY : ngms, nls, nlsm
+  ! USE gvecs,   ONLY : ngms, nls, nlsm
   USE fft_base,   ONLY : dfftp, dffts
 ! DCC
 !  USE gcoarse,   ONLY : nr1c,nr2c,nr3c,nnr,ngmc, nlc, nlcm

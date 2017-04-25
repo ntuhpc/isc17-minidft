@@ -154,6 +154,9 @@
      ! nlm = as above, for G< (used only with gamma tricks)
 
      INTEGER, ALLOCATABLE :: nls(:), nlsm(:)
+#if defined(__CUDA) && defined(__CUFFT)
+     INTEGER, ALLOCATABLE, DEVICE :: nls_d(:)
+#endif
 
      REAL(DP) :: ecuts = 0.0_DP   ! energy cut-off = 4*ecutwfc
      REAL(DP) :: gcutms= 0.0_DP   ! ecuts/(2 pi/a)^2, cut-off for |G|^2
@@ -185,6 +188,9 @@
        !  allocate arrays 
        !
        ALLOCATE( nls (ngms) )
+#if defined(__CUDA) && defined(__CUFFT)
+       ALLOCATE( nls_d (ngms) )
+#endif
        ALLOCATE( nlsm(ngms) )
        !
        RETURN 
@@ -193,6 +199,9 @@
 
      SUBROUTINE deallocate_gvecs()
        IF( ALLOCATED( nls ) ) DEALLOCATE( nls )
+#if defined(__CUDA) && defined(__CUFFT)
+       IF( ALLOCATED( nls_d ) ) DEALLOCATE( nls_d )
+#endif
        IF( ALLOCATED( nlsm ) ) DEALLOCATE( nlsm )
      END SUBROUTINE deallocate_gvecs
 

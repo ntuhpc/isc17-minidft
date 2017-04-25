@@ -196,6 +196,10 @@ MODULE wvfct
        current_k          ! the index of k-point under consideration
   INTEGER, ALLOCATABLE, TARGET :: &
        igk(:)             ! index of G corresponding to a given index of k+G
+#if defined(__CUDA) && defined(__CUFFT)
+  INTEGER, ALLOCATABLE, DEVICE, TARGET :: &
+       igk_d(:)
+#endif
   REAL(DP) :: &
        ecutwfc,       &! energy cut-off
        ecfixed,       &!

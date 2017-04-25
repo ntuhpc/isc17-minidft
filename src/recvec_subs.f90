@@ -16,7 +16,11 @@ MODULE recvec_subs
 !  ... Most important dependencies: next three modules
    USE gvect,              ONLY : ig_l2g, g, gg, ngm, ngm_g, gcutm, &
                                   mill,  nl, gstart
+#if defined(__CUDA) && defined(__CUFFT)
+   USE gvecs,              ONLY : ngms, gcutms, ngms_g, nls, nls_d
+#else
    USE gvecs,              ONLY : ngms, gcutms, ngms_g, nls
+#endif
    USE fft_base,           ONLY : dfftp, dffts
 !
    USE kinds,              ONLY : DP
@@ -265,6 +269,9 @@ CONTAINS
       IF (ng <= ngms) &
          nls (ng) = n3s + ( dffts%isind(n1s+(n2s-1)*dffts%nr1x) - 1 ) * dffts%nr3x
    ENDDO
+#if defined(__CUDA) && defined(__CUFFT)
+   nls_d = nls
+#endif
    !
    DEALLOCATE( mill_g )
 

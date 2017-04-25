@@ -21,13 +21,21 @@ SUBROUTINE clean_pw( lflag )
   USE ions_base,            ONLY : deallocate_ions_base
   USE gvect,                ONLY : g, gg, gl, nl, nlm, igtongl, mill, &
                                    eigts1, eigts2, eigts3
+#if defined(__CUDA) && defined(__CUFFT)
+  USE gvecs,                ONLY : nls, nlsm, nls_d
+#else
   USE gvecs,                ONLY : nls, nlsm
+#endif
   USE fixed_occ,            ONLY : f_inp
   USE ktetra,               ONLY : tetra
   USE klist,                ONLY : ngk
   USE gvect,                ONLY : ig_l2g
   USE vlocal,               ONLY : strf, vloc
+#if defined(__CUDA) && defined(__CUFFT)
+  USE wvfct,                ONLY : igk, igk_d, g2kin, et, wg, btype
+#else
   USE wvfct,                ONLY : igk, g2kin, et, wg, btype
+#endif
   USE force_mod,            ONLY : force
   USE scf,                  ONLY : rho, v, vltot, rho_core, rhog_core, &
                                    vrs, kedtau, destroy_scf_type, vnew
@@ -107,6 +115,9 @@ SUBROUTINE clean_pw( lflag )
     IF ( ALLOCATED( tab_d2y) )     DEALLOCATE( tab_d2y )
   endif
   IF ( ALLOCATED( nls ) )     DEALLOCATE( nls )
+#if defined(__CUDA) && defined(__CUFFT)
+  IF ( ALLOCATED( nls_d ) )  DEALLOCATE( nls_d )
+#endif
   IF ( ALLOCATED( nlsm ) )   DEALLOCATE( nlsm )
   !
   ! ... arrays allocated in allocate_locpot.f90 ( and never deallocated )
@@ -121,6 +132,9 @@ SUBROUTINE clean_pw( lflag )
   !
   IF ( ALLOCATED( ngk ) )        DEALLOCATE( ngk )
   IF ( ALLOCATED( igk ) )        DEALLOCATE( igk )
+#if defined(__CUDA) && defined(__CUFFT)
+  IF ( ALLOCATED( igk_d ) )      DEALLOCATE( igk_d )
+#endif
   IF ( ALLOCATED( g2kin ) )      DEALLOCATE( g2kin )
   IF ( ALLOCATED( qrad ) )       DEALLOCATE( qrad )
   IF ( ALLOCATED( tab ) )        DEALLOCATE( tab )

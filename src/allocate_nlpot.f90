@@ -28,7 +28,11 @@ subroutine allocate_nlpot
   USE klist,            ONLY : xk, wk, ngk, nks, qnorm
   USE lsda_mod,         ONLY : nspin
   USE scf,              ONLY : rho
+#if defined(__CUDA) && defined(__CUFFT)
+  USE wvfct,            ONLY : npwx, npw, igk, igk_d, g2kin, ecutwfc
+#else
   USE wvfct,            ONLY : npwx, npw, igk, g2kin, ecutwfc
+#endif
   USE us,               ONLY : qrad, tab, tab_d2y, tab_at, dq, nqx, &
                                nqxq, spline_ps
   USE uspp,             ONLY : indv, nhtol, nhtolm, ijtoh, qq, dvan, deeq, vkb, &
@@ -53,7 +57,10 @@ subroutine allocate_nlpot
   !
   !   igk relates the index of PW k+G to index in the list of G vector
   !
-  allocate (igk( npwx ), g2kin ( npwx ) )    
+  allocate (igk( npwx ), g2kin ( npwx ) )
+#if defined(__CUDA) && defined(__CUFFT)
+  ALLOCATE( igk_d( npwx ) )
+#endif
   !
   ! Note: computation of the number of beta functions for
   ! each atomic type and the maximum number of beta functions
