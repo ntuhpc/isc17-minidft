@@ -20,6 +20,7 @@
    MODULE fft_scalar_gpu
 !=----------------------------------------------------------------------=!
        USE kinds
+       USE cufft
 
         IMPLICIT NONE
         SAVE
@@ -142,13 +143,13 @@
 
 
 
-       IF( fw_planz( icurrent) /= 0 ) CALL dfftw_destroy_plan( fw_planz( icurrent) )
-       IF( bw_planz( icurrent) /= 0 ) CALL dfftw_destroy_plan( bw_planz( icurrent) )
+       IF( fw_planz( icurrent) /= 0 ) CALL cufftDestroy( fw_planz( icurrent) )
+       IF( bw_planz( icurrent) /= 0 ) CALL cufftDestroy( bw_planz( icurrent) )
        idir = -1
-       CALL dfftw_plan_many_dft( fw_planz( icurrent), 1, nz, nsl, c, &
+       CALL cufftMakePlanMany( fw_planz( icurrent), 1, nz, nsl, c, &
             (/SIZE(c)/), 1, ldz, cout, (/SIZE(cout)/), 1, ldz, idir, FFTW_ESTIMATE)
        idir = 1
-       CALL dfftw_plan_many_dft( bw_planz( icurrent), 1, nz, nsl, c, &
+       CALL cufftMakePlanMany( bw_planz( icurrent), 1, nz, nsl, c, &
             (/SIZE(c)/), 1, ldz, cout, (/SIZE(cout)/), 1, ldz, idir, FFTW_ESTIMATE)
 
 
@@ -168,7 +169,7 @@
 
 
      IF (isign < 0) THEN
-        CALL dfftw_execute_dft( fw_planz( ip), c, cout)
+        CALL cufftExecZ2Z( fw_planz( ip), c, cout, CUFFT_INVERSE)
         tscale = 1.0_DP / nz
         ! TODO: fix error
         !$cuf kernel do <<<*,*>>>
@@ -176,7 +177,7 @@
           cout( 1 : i ) = cout( 1 : i ) * tscale
         END DO
      ELSE IF (isign > 0) THEN
-        CALL dfftw_execute_dft( bw_planz( ip), c, cout)
+        CALL cufftExecZ2Z( bw_planz( ip), c, cout, CUFFT_FORWARD)
      END IF
 
 
@@ -278,36 +279,36 @@
 
 
        IF ( ldx /= nx .OR. ldy /= ny ) THEN
-          IF( fw_plan(2,icurrent) /= 0 )  CALL dfftw_destroy_plan( fw_plan(2,icurrent) )
-          IF( bw_plan(2,icurrent) /= 0 )  CALL dfftw_destroy_plan( bw_plan(2,icurrent) )
+          IF( fw_plan(2,icurrent) /= 0 )  CALL cufftDestroy( fw_plan(2,icurrent) )
+          IF( bw_plan(2,icurrent) /= 0 )  CALL cufftDestroy( bw_plan(2,icurrent) )
           idir = -1
-          CALL dfftw_plan_many_dft( fw_plan(2,icurrent), 1, ny, 1, r(1:), &
+          CALL cufftMakePlanMany( fw_plan(2,icurrent), 1, ny, 1, r(1:), &
                (/ldx*ldy/), ldx, 1, r(1:), (/ldx*ldy/), ldx, 1, idir, &
                FFTW_ESTIMATE)
           idir =  1
-          CALL dfftw_plan_many_dft( bw_plan(2,icurrent), 1, ny, 1, r(1:), &
+          CALL cufftMakePlanMany( bw_plan(2,icurrent), 1, ny, 1, r(1:), &
                (/ldx*ldy/), ldx, 1, r(1:), (/ldx*ldy/), ldx, 1, idir, &
                FFTW_ESTIMATE)
 
-          IF( fw_plan(1,icurrent) /= 0 ) CALL dfftw_destroy_plan( fw_plan(1,icurrent) )
-          IF( bw_plan(1,icurrent) /= 0 ) CALL dfftw_destroy_plan( bw_plan(1,icurrent) )
+          IF( fw_plan(1,icurrent) /= 0 ) CALL cufftDestroy( fw_plan(1,icurrent) )
+          IF( bw_plan(1,icurrent) /= 0 ) CALL cufftDestroy( bw_plan(1,icurrent) )
           idir = -1
-          CALL dfftw_plan_many_dft( fw_plan(1,icurrent), 1, nx, ny, r(1:), &
+          CALL cufftMakePlanMany( fw_plan(1,icurrent), 1, nx, ny, r(1:), &
                (/ldx*ldy/), 1, ldx, r(1:), (/ldx*ldy/), 1, ldx, idir, &
                FFTW_ESTIMATE)
           idir =  1
-          CALL dfftw_plan_many_dft( bw_plan(1,icurrent), 1, nx, ny, r(1:), &
+          CALL cufftMakePlanMany( bw_plan(1,icurrent), 1, nx, ny, r(1:), &
                (/ldx*ldy/), 1, ldx, r(1:), (/ldx*ldy/), 1, ldx, idir, &
                FFTW_ESTIMATE)
        ELSE
-          IF( fw_plan( 1, icurrent) /= 0 ) CALL dfftw_destroy_plan( fw_plan( 1, icurrent) )
-          IF( bw_plan( 1, icurrent) /= 0 ) CALL dfftw_destroy_plan( bw_plan( 1, icurrent) )
+          IF( fw_plan( 1, icurrent) /= 0 ) CALL cufftDestroy( fw_plan( 1, icurrent) )
+          IF( bw_plan( 1, icurrent) /= 0 ) CALL cufftDestroy( bw_plan( 1, icurrent) )
           idir = -1
-          CALL dfftw_plan_many_dft( fw_plan( 1, icurrent), 2, (/nx, ny/), nzl,&
+          CALL cufftMakePlanMany( fw_plan( 1, icurrent), 2, (/nx, ny/), nzl,&
                r(1:), (/nx, ny/), 1, nx*ny, r(1:), (/nx, ny/), 1, nx*ny, idir,&
                FFTW_ESTIMATE)
           idir = 1
-          CALL dfftw_plan_many_dft( bw_plan( 1, icurrent), 2, (/nx, ny/), nzl,&
+          CALL cufftMakePlanMany( bw_plan( 1, icurrent), 2, (/nx, ny/), nzl,&
                r(1:), (/nx, ny/), 1, nx*ny, r(1:), (/nx, ny/), 1, nx*ny, idir,&
                FFTW_ESTIMATE)
        END IF
@@ -333,14 +334,14 @@
      IF ( ldx /= nx .OR. ldy /= ny ) THEN
         IF( isign < 0 ) THEN
            do j = 0, nzl-1
-              CALL dfftw_execute_dft( fw_plan (1, ip), &
-                   r(1+j*ldx*ldy:), r(1+j*ldx*ldy:))
+              CALL cufftExecZ2Z( fw_plan (1, ip), &
+                   r(1+j*ldx*ldy:), r(1+j*ldx*ldy:), CUFFT_INVERSE)
            end do
            do i = 1, nx
               do k = 1, nzl
                  IF( dofft( i ) ) THEN
                     j = i + ldx*ldy * ( k - 1 )
-                    call dfftw_execute_dft( fw_plan ( 2, ip), r(j:), r(j:))
+                    call cufftExecZ2Z( fw_plan ( 2, ip), r(j:), r(j:), CUFFT_INVERSE)
                  END IF
               end do
            end do
@@ -351,22 +352,22 @@
               do k = 1, nzl
                  IF( dofft( i ) ) THEN
                     j = i + ldx*ldy * ( k - 1 )
-                    call dfftw_execute_dft( bw_plan ( 2, ip), r(j:), r(j:))
+                    call cufftExecZ2Z( bw_plan ( 2, ip), r(j:), r(j:), CUFFT_FORWARD)
                  END IF
               end do
            end do
            do j = 0, nzl-1
-              CALL dfftw_execute_dft( bw_plan( 1, ip), &
-                   r(1+j*ldx*ldy:), r(1+j*ldx*ldy:))
+              CALL cufftExecZ2Z( bw_plan( 1, ip), &
+                   r(1+j*ldx*ldy:), r(1+j*ldx*ldy:), CUFFT_FORWARD)
            end do
         END IF
      ELSE
         IF( isign < 0 ) THEN
-           call dfftw_execute_dft( fw_plan( 1, ip), r(1:), r(1:))
+           call cufftExecZ2Z( fw_plan( 1, ip), r(1:), r(1:), CUFFT_INVERSE)
            tscale = 1.0_DP / ( nx * ny )
            CALL ZDSCAL( ldx * ldy * nzl, tscale, r(1), 1)
         ELSE IF( isign > 0 ) THEN
-           call dfftw_execute_dft( bw_plan( 1, ip), r(1:), r(1:))
+           call cufftExecZ2Z( bw_plan( 1, ip), r(1:), r(1:), CUFFT_FORWARD)
         END IF
      END IF
 
@@ -378,98 +379,6 @@
      RETURN
 
    END SUBROUTINE cft_2xy_gpu
-
-
-!    SUBROUTINE cft_b ( f, nx, ny, nz, ldx, ldy, ldz, imin3, imax3, sgn )
-
-! !     driver routine for 3d complex fft's on box grid, parallel case
-! !     fft along xy is done only on planes that correspond to dense grid
-! !     planes on the current processor, i.e. planes with imin3 <= nz <= imax3
-! !     implemented for essl, fftw, scsl, complib, only for sgn=1 (f(R) => f(G))
-! !     (beware: here the "essl" convention for the sign of the fft is used!)
-! !
-!       implicit none
-!       integer nx,ny,nz,ldx,ldy,ldz,imin3,imax3,sgn
-!       complex(dp) :: f(:)
-
-!       integer isign, naux, ibid, nplanes, nstart, k
-!       real(DP) :: tscale
-
-!       integer :: ip, i
-!       integer, save :: icurrent = 1
-!       integer, save :: dims( 4, ndims ) = -1
-
-
-!       C_POINTER, save :: bw_planz(  ndims ) = 0
-!       C_POINTER, save :: bw_planx(  ndims ) = 0
-!       C_POINTER, save :: bw_plany(  ndims ) = 0
-!       C_POINTER, save :: bw_planxy( ndims ) = 0
-
-
-!       isign = -sgn
-!       tscale = 1.0_DP
-
-!       if ( isign > 0 ) then
-!          call errore('cft_b','not implemented',isign)
-!       end if
-! !
-! ! 2d fft on xy planes - only needed planes are transformed
-! ! note that all others are left in an unusable state
-! !
-!       nplanes = imax3 - imin3 + 1
-!       nstart  = ( imin3 - 1 ) * ldx * ldy + 1
-
-!       !
-!       !   Here initialize table only if necessary
-!       !
-
-!       ip = -1
-!       DO i = 1, ndims
-
-!         !   first check if there is already a table initialized
-!         !   for this combination of parameters
-
-!         IF ( ( nx == dims(1,i) ) .and. ( ny == dims(2,i) ) .and. &
-!              ( nz == dims(3,i) ) .and. ( nplanes == dims(4,i) ) ) THEN
-!            ip = i
-!            EXIT
-!         END IF
-
-!       END DO
-
-!       IF( ip == -1 ) THEN
-
-!         !   no table exist for these parameters
-!         !   initialize a new one
-
-
-!         if ( bw_planz(icurrent) /= 0 ) &
-!              call dfftw_destroy_plan(bw_planz(icurrent))
-!         call dfftw_plan_many_dft( bw_planz(icurrent), 1, nz, ldx*ldy, &
-!              f(1:), (/SIZE(f)/), ldx*ldy, 1, f(1:), (/SIZE(f)/), ldx*ldy, 1, &
-!              1, FFTW_ESTIMATE )
-
-!         if ( bw_planxy(icurrent) /= 0 ) &
-!              call dfftw_destroy_plan(bw_planxy(icurrent))
-!         call dfftw_plan_many_dft( bw_planxy(icurrent), 2, (/nx, ny/), nplanes,&
-!              f(nstart:),  (/ldx, ldy/), 1, ldx*ldy, f(nstart:), (/ldx, ldy/), &
-!              1, ldx*ldy, 1, FFTW_ESTIMATE )
-
-
-!         dims(1,icurrent) = nx; dims(2,icurrent) = ny
-!         dims(3,icurrent) = nz; dims(4,icurrent) = nplanes
-!         ip = icurrent
-!         icurrent = MOD( icurrent, ndims ) + 1
-
-!       END IF
-
-
-
-!       call dfftw_execute_dft(bw_planz(ip), f(1:), f(1:))
-!       call dfftw_execute_dft(bw_planxy(ip), f(nstart:), f(nstart:))
-
-!      RETURN
-!    END SUBROUTINE cft_b
 !!$
 !!$!
 !!$!=----------------------------------------------------------------------=!
