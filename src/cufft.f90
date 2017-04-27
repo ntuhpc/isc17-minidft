@@ -14,20 +14,19 @@ MODULE cufft
 
   !-----------------------------------------------------------------------------
   ! cufftResult 
-  !   cufftMakePlanMany(cufftHandle plan, int rank, int *n, int *inembed,
+  !   cufftPlanMany(cufftHandle *plan, int rank, int *n, int *inembed,
   !     int istride, int idist, int *onembed, int ostride,
-  !     int odist, cufftType type, int batch, size_t *workSize);
+  !     int odist, cufftType type, int batch);
   !-----------------------------------------------------------------------------
-  INTERFACE cufftMakePlanMany
-    SUBROUTINE cufftMakePlanMany(plan, rank, n, inembed, &
+  INTERFACE cufftPlanMany
+    SUBROUTINE cufftPlanMany(plan, rank, n, inembed, &
         istride, idist, onembed, ostride, &
-        odist, type, batch, workSize) BIND(C, name='cufftMakePlanMany')
+        odist, type, batch) BIND(C, name='cufftPlanMany')
       USE iso_c_binding
       INTEGER(C_INT) :: n, inembed, onembed
       INTEGER(C_INT), VALUE :: plan, rank, istride, idist, ostride, odist, type, batch
-      INTEGER(C_SIZE_T) :: workSize
-    END SUBROUTINE cufftMakePlanMany
-  END INTERFACE cufftMakePlanMany
+    END SUBROUTINE cufftPlanMany
+  END INTERFACE cufftPlanMany
 
   !---------------------------------------------
   ! cufftResult 

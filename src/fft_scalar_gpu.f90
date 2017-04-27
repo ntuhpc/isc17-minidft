@@ -146,12 +146,22 @@
        IF( fw_planz( icurrent) /= 0 ) CALL cufftDestroy( fw_planz( icurrent) )
        IF( bw_planz( icurrent) /= 0 ) CALL cufftDestroy( bw_planz( icurrent) )
        idir = -1
-       CALL cufftMakePlanMany( fw_planz( icurrent), 1, nz, nsl, c, &
-            (/SIZE(c)/), 1, ldz, cout, (/SIZE(cout)/), 1, ldz, idir, FFTW_ESTIMATE)
+       CALL cufftPlanMany( fw_planz( icurrent), 1, nz, (/SIZE(c)/), 1, ldz, &
+            (/SIZE(cout)/), 1, ldz, CUFFT_C2C, nsl )
+       ! 1 = rank
+       ! nz = n
+       ! nsl = howmany
+       ! c = in
+       ! (/SIZE(c)/) = inembed
+       ! 1 = istride
+       ! ldz = idist
+       ! cout = out
+       ! (/SIZE(cout)/) = onembed
+       ! 1 = ostride
+       ! ldz = odist
        idir = 1
-       CALL cufftMakePlanMany( bw_planz( icurrent), 1, nz, nsl, c, &
-            (/SIZE(c)/), 1, ldz, cout, (/SIZE(cout)/), 1, ldz, idir, FFTW_ESTIMATE)
-
+       CALL cufftPlanMany( bw_planz( icurrent), 1, nz, (/SIZE(c)/), 1, ldz, &
+            (/SIZE(cout)/), 1, ldz, CUFFT_C2C, nsl )
 
        zdims(1,icurrent) = nz; zdims(2,icurrent) = nsl; zdims(3,icurrent) = ldz;
        ip = icurrent
@@ -162,14 +172,13 @@
      !
      !   Now perform the FFTs using machine specific drivers
      !
-
 #if defined __FFT_CLOCKS
      CALL start_clock( 'cft_1z' )
 #endif
 
 
      IF (isign < 0) THEN
-        CALL cufftExecZ2Z( fw_planz( ip), c, cout, CUFFT_INVERSE)
+        CALL cufftExecZ2Z( fw_planz( ip), c, cout, CUFFT_INVERSE )
         tscale = 1.0_DP / nz
         ! TODO: fix error
         !$cuf kernel do <<<*,*>>>
@@ -177,7 +186,7 @@
           cout( 1 : i ) = cout( 1 : i ) * tscale
         END DO
      ELSE IF (isign > 0) THEN
-        CALL cufftExecZ2Z( bw_planz( ip), c, cout, CUFFT_FORWARD)
+        CALL cufftExecZ2Z( bw_planz( ip), c, cout, CUFFT_FORWARD )
      END IF
 
 
@@ -282,35 +291,29 @@
           IF( fw_plan(2,icurrent) /= 0 )  CALL cufftDestroy( fw_plan(2,icurrent) )
           IF( bw_plan(2,icurrent) /= 0 )  CALL cufftDestroy( bw_plan(2,icurrent) )
           idir = -1
-          CALL cufftMakePlanMany( fw_plan(2,icurrent), 1, ny, 1, r(1:), &
-               (/ldx*ldy/), ldx, 1, r(1:), (/ldx*ldy/), ldx, 1, idir, &
-               FFTW_ESTIMATE)
+          CALL cufftPlanMany( fw_plan(2,icurrent), 1, ny, 1, r(1:), &
+               (/ldx*ldy/), ldx, 1, r(1:), (/ldx*ldy/), ldx, 1)
           idir =  1
-          CALL cufftMakePlanMany( bw_plan(2,icurrent), 1, ny, 1, r(1:), &
-               (/ldx*ldy/), ldx, 1, r(1:), (/ldx*ldy/), ldx, 1, idir, &
-               FFTW_ESTIMATE)
+          CALL cufftPlanMany( bw_plan(2,icurrent), 1, ny, 1, r(1:), &
+               (/ldx*ldy/), ldx, 1, r(1:), (/ldx*ldy/), ldx, 1)
 
           IF( fw_plan(1,icurrent) /= 0 ) CALL cufftDestroy( fw_plan(1,icurrent) )
           IF( bw_plan(1,icurrent) /= 0 ) CALL cufftDestroy( bw_plan(1,icurrent) )
           idir = -1
-          CALL cufftMakePlanMany( fw_plan(1,icurrent), 1, nx, ny, r(1:), &
-               (/ldx*ldy/), 1, ldx, r(1:), (/ldx*ldy/), 1, ldx, idir, &
-               FFTW_ESTIMATE)
+          CALL cufftPlanMany( fw_plan(1,icurrent), 1, nx, ny, r(1:), &
+               (/ldx*ldy/), 1, ldx, r(1:), (/ldx*ldy/), 1, ldx)
           idir =  1
-          CALL cufftMakePlanMany( bw_plan(1,icurrent), 1, nx, ny, r(1:), &
-               (/ldx*ldy/), 1, ldx, r(1:), (/ldx*ldy/), 1, ldx, idir, &
-               FFTW_ESTIMATE)
+          CALL cufftPlanMany( bw_plan(1,icurrent), 1, nx, ny, r(1:), &
+               (/ldx*ldy/), 1, ldx, r(1:), (/ldx*ldy/), 1, ldx)
        ELSE
           IF( fw_plan( 1, icurrent) /= 0 ) CALL cufftDestroy( fw_plan( 1, icurrent) )
           IF( bw_plan( 1, icurrent) /= 0 ) CALL cufftDestroy( bw_plan( 1, icurrent) )
           idir = -1
-          CALL cufftMakePlanMany( fw_plan( 1, icurrent), 2, (/nx, ny/), nzl,&
-               r(1:), (/nx, ny/), 1, nx*ny, r(1:), (/nx, ny/), 1, nx*ny, idir,&
-               FFTW_ESTIMATE)
+          CALL cufftPlanMany( fw_plan( 1, icurrent), 2, (/nx, ny/), nzl,&
+               r(1:), (/nx, ny/), 1, nx*ny, r(1:), (/nx, ny/), 1, nx*ny)
           idir = 1
-          CALL cufftMakePlanMany( bw_plan( 1, icurrent), 2, (/nx, ny/), nzl,&
-               r(1:), (/nx, ny/), 1, nx*ny, r(1:), (/nx, ny/), 1, nx*ny, idir,&
-               FFTW_ESTIMATE)
+          CALL cufftPlanMany( bw_plan( 1, icurrent), 2, (/nx, ny/), nzl,&
+               r(1:), (/nx, ny/), 1, nx*ny, r(1:), (/nx, ny/), 1, nx*ny)
        END IF
 
 
