@@ -135,7 +135,6 @@ OBJECTS += \
 	newd.o \
         coulomb_vcut.o \
         exx.o \
-		exx_gpu.o \
 	clean_pw.o \
 	input.o \
 	electrons.o \

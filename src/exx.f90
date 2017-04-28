@@ -177,16 +177,16 @@ CONTAINS
 
   ! END SUBROUTINE exx_fft_create
   !------------------------------------------------------------------------
-  ! SUBROUTINE exx_fft_destroy ()
+  SUBROUTINE exx_fft_destroy ()
   ! !------------------------------------------------------------------------
-  !   USE fft_custom,  ONLY : deallocate_fft_custom
+    USE fft_custom,  ONLY : deallocate_fft_custom
 
-  !   IMPLICIT NONE
+    IMPLICIT NONE
 
-  !   CALL deallocate_fft_custom(exx_fft_g2r)
-  !   CALL deallocate_fft_custom(exx_fft_r2g)
+    CALL deallocate_fft_custom(exx_fft_g2r)
+    CALL deallocate_fft_custom(exx_fft_r2g)
 
-  ! END SUBROUTINE exx_fft_destroy
+  END SUBROUTINE exx_fft_destroy
   !------------------------------------------------------------------------
   SUBROUTINE deallocate_exx ()
   !------------------------------------------------------------------------

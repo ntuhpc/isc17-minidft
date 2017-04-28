@@ -39,6 +39,8 @@ SUBROUTINE h_psi_gpu( lda, n, m, psi_d, hpsi_d )
   COMPLEX(DP), INTENT(IN), DEVICE  :: psi_d(lda*npol,m) 
   COMPLEX(DP), INTENT(OUT), DEVICE :: hpsi_d(lda*npol,m)
   INTEGER     :: ipol, ibnd, incr
+  ! TODO: remove this when add_vuspsi & vexx are ported to GPU
+  COMPLEX(DP) :: psi(lda*npol, m), hpsi(lda*npol, m)
   ! TODO: consider moving it elsewhere?
   REAL(DP), ALLOCATABLE, DEVICE :: g2kin_d(:)
   ALLOCATE( g2kin_d( npwx ) )
@@ -75,15 +77,20 @@ SUBROUTINE h_psi_gpu( lda, n, m, psi_d, hpsi_d )
      !
      CALL start_clock( 'h_psi:vnl' )
      ! JRD: calbec done in add_vuspsi now
-     CALL add_vuspsi_gpu( lda, n, m, psi_d, hpsi_d )
+     psi = psi_d
+     hpsi = hpsi_d
+     CALL add_vuspsi( lda, n, m, psi, hpsi )
+     !CALL add_vuspsi_gpu( lda, n, m, psi_d, hpsi_d )
      CALL stop_clock( 'h_psi:vnl' )
      !
 !JRD
-  IF ( exx_is_active() ) CALL vexx_gpu( lda, n, m, psi_d, hpsi_d )
+  !IF ( exx_is_active() ) CALL vexx_gpu( lda, n, m, psi_d, hpsi_d )
+  IF ( exx_is_active() ) CALL vexx( lda, n, m, psi, hpsi )
   !
   ! ... electric enthalpy if required
   !
   !
+  hpsi_d = hpsi
   CALL stop_clock( 'h_psi' )
   !
   RETURN
