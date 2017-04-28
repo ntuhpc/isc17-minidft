@@ -29,6 +29,7 @@ OBJECTS += \
 	version.o \
 	environment.o \
 	error_handler.o \
+	cufft.o \
 	fft_scalar.o \
 	fft_scalar_gpu.o \
 	fft_custom.o \

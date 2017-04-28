@@ -3,7 +3,7 @@ MKLROOT   = /opt/mkl/mkl
 
 MATH_LIBS =  ${MKLROOT}/lib/intel64/libmkl_scalapack_lp64.a -Wl,--start-group ${MKLROOT}/lib/intel64/libmkl_intel_lp64.a ${MKLROOT}/lib/intel64/libmkl_pgi_thread.a ${MKLROOT}/lib/intel64/libmkl_core.a ${MKLROOT}/lib/intel64/libmkl_blacs_openmpi_lp64.a -Wl,--end-group -lpthread -lm -ldl
 
-LIBS = $(MATH_LIBS)
+LIBS = $(MATH_LIBS) -lcufft
 
 DFLAGS += -D__CUDA -D__CUFFT -D__CUBLAS
 

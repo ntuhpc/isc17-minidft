@@ -23,8 +23,9 @@ MODULE cufft
         istride, idist, onembed, ostride, &
         odist, type, batch) BIND(C, name='cufftPlanMany')
       USE iso_c_binding
-      INTEGER(C_INT) :: n, inembed, onembed
-      INTEGER(C_INT), VALUE :: plan, rank, istride, idist, ostride, odist, type, batch
+      INTEGER(C_INT) :: plan
+      TYPE(C_PTR), VALUE :: inembed, onembed, n
+      INTEGER(C_INT), VALUE :: rank, istride, idist, ostride, odist, type, batch
     END SUBROUTINE cufftPlanMany
   END INTERFACE cufftPlanMany
 
@@ -36,6 +37,7 @@ MODULE cufft
   INTERFACE cufftExecZ2Z
     SUBROUTINE cufftExecZ2Z(plan, in, out, direction) BIND(C, name='cufftExecZ2Z')
       USE iso_c_binding
+      USE kinds, ONLY : DP
       INTEGER(C_INT), VALUE :: plan, direction
       COMPLEX(DP), DEVICE :: in(*), out(*)
     END SUBROUTINE cufftExecZ2Z
