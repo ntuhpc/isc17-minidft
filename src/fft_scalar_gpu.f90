@@ -178,7 +178,7 @@
 
 
      IF (isign < 0) THEN
-        CALL cufftExecZ2Z( fw_planz( ip), c, cout, CUFFT_INVERSE )
+        CALL cufftExecZ2Z( fw_planz( ip), c, cout, CUFFT_FORWARD )
         tscale = 1.0_DP / nz
         ! TODO: fix error
         !$cuf kernel do <<<*,*>>>
@@ -186,7 +186,7 @@
           cout( 1 : i ) = cout( 1 : i ) * tscale
         END DO
      ELSE IF (isign > 0) THEN
-        CALL cufftExecZ2Z( bw_planz( ip), c, cout, CUFFT_FORWARD )
+        CALL cufftExecZ2Z( bw_planz( ip), c, cout, CUFFT_INVERSE )
      END IF
 
 
@@ -291,31 +291,63 @@
           IF( fw_plan(2,icurrent) /= 0 )  CALL cufftDestroy( fw_plan(2,icurrent) )
           IF( bw_plan(2,icurrent) /= 0 )  CALL cufftDestroy( bw_plan(2,icurrent) )
           idir = -1
-          CALL cufftPlanMany( fw_plan(2,icurrent), 1, ny, 1, r(1:), &
-               (/ldx*ldy/), ldx, 1, r(1:), (/ldx*ldy/), ldx, 1)
+          CALL cufftPlanMany( fw_plan(2,icurrent), 1, ny, (/ldx*ldy/), &
+               ldx, 1, (/ldx*ldy/), ldx, 1, CUFFT_C2C, 1)
+               ! 1 = rank
+               ! ny = n
+               ! 1 = howmany
+               ! r(1:) = in
+               ! (/ldx*ldy/) = inembed
+               ! ldx = istride
+               ! 1 = idist
+               ! r(1:) = out
+               ! (/ldx*ldy/) = onembed
+               ! ldx = ostride
+               ! 1 = odist
           idir =  1
-          CALL cufftPlanMany( bw_plan(2,icurrent), 1, ny, 1, r(1:), &
-               (/ldx*ldy/), ldx, 1, r(1:), (/ldx*ldy/), ldx, 1)
+          CALL cufftPlanMany( bw_plan(2,icurrent), 1, ny, (/ldx*ldy/), &
+               ldx, 1, (/ldx*ldy/), ldx, 1, CUFFT_C2C, 1)
 
           IF( fw_plan(1,icurrent) /= 0 ) CALL cufftDestroy( fw_plan(1,icurrent) )
           IF( bw_plan(1,icurrent) /= 0 ) CALL cufftDestroy( bw_plan(1,icurrent) )
           idir = -1
-          CALL cufftPlanMany( fw_plan(1,icurrent), 1, nx, ny, r(1:), &
-               (/ldx*ldy/), 1, ldx, r(1:), (/ldx*ldy/), 1, ldx)
+          CALL cufftPlanMany( fw_plan(1,icurrent), 1, nx, (/ldx*ldy/), &
+               1, ldx, (/ldx*ldy/), 1, ldx, CUFFT_C2C, ny)
+               ! 1 = rank
+               ! nx = n
+               ! ny = howmany
+               ! r(1:) = in
+               ! (/ldx*ldy/) = inembed
+               ! 1 = istride
+               ! ldx = idist
+               ! r(1:) = out
+               ! (/ldx*ldy/) = onembed
+               ! 1 = ostride
+               ! ldx = odist
           idir =  1
-          CALL cufftPlanMany( bw_plan(1,icurrent), 1, nx, ny, r(1:), &
-               (/ldx*ldy/), 1, ldx, r(1:), (/ldx*ldy/), 1, ldx)
+          CALL cufftPlanMany( bw_plan(1,icurrent), 1, nx, (/ldx*ldy/), &
+               1, ldx, (/ldx*ldy/), 1, ldx, CUFFT_C2C, ny)
        ELSE
           IF( fw_plan( 1, icurrent) /= 0 ) CALL cufftDestroy( fw_plan( 1, icurrent) )
           IF( bw_plan( 1, icurrent) /= 0 ) CALL cufftDestroy( bw_plan( 1, icurrent) )
           idir = -1
-          CALL cufftPlanMany( fw_plan( 1, icurrent), 2, (/nx, ny/), nzl,&
-               r(1:), (/nx, ny/), 1, nx*ny, r(1:), (/nx, ny/), 1, nx*ny)
+          CALL cufftPlanMany( fw_plan( 1, icurrent), 2, (/nx, ny/), (/nx, ny/), &
+               1, nx*ny, (/nx, ny/), 1, nx*ny, CUFFT_C2C, nzl)
+          ! 2 = rank
+          ! (/nx, ny/) = n
+          ! nzl = howmany
+          ! r(1:) = in
+          ! (/nx, ny/) = inembed
+          ! 1 = istride
+          ! nx*ny = idist
+          ! r(1:) = out
+          ! (/nx, ny/) = onembed
+          ! 1 = ostride
+          ! nx*ny = odist
           idir = 1
-          CALL cufftPlanMany( bw_plan( 1, icurrent), 2, (/nx, ny/), nzl,&
-               r(1:), (/nx, ny/), 1, nx*ny, r(1:), (/nx, ny/), 1, nx*ny)
+          CALL cufftPlanMany( bw_plan( 1, icurrent), 2, (/nx, ny/), (/nx, ny/), &
+               1, nx*ny, (/nx, ny/), 1, nx*ny, CUFFT_C2C, nzl)
        END IF
-
 
        dims(1,icurrent) = ny; dims(2,icurrent) = ldx;
        dims(3,icurrent) = nx; dims(4,icurrent) = nzl;
@@ -338,13 +370,13 @@
         IF( isign < 0 ) THEN
            do j = 0, nzl-1
               CALL cufftExecZ2Z( fw_plan (1, ip), &
-                   r(1+j*ldx*ldy:), r(1+j*ldx*ldy:), CUFFT_INVERSE)
+                   r(1+j*ldx*ldy:), r(1+j*ldx*ldy:), CUFFT_FORWARD)
            end do
            do i = 1, nx
               do k = 1, nzl
                  IF( dofft( i ) ) THEN
                     j = i + ldx*ldy * ( k - 1 )
-                    call cufftExecZ2Z( fw_plan ( 2, ip), r(j:), r(j:), CUFFT_INVERSE)
+                    call cufftExecZ2Z( fw_plan ( 2, ip), r(j:), r(j:), CUFFT_FORWARD)
                  END IF
               end do
            end do
@@ -355,22 +387,22 @@
               do k = 1, nzl
                  IF( dofft( i ) ) THEN
                     j = i + ldx*ldy * ( k - 1 )
-                    call cufftExecZ2Z( bw_plan ( 2, ip), r(j:), r(j:), CUFFT_FORWARD)
+                    call cufftExecZ2Z( bw_plan ( 2, ip), r(j:), r(j:), CUFFT_INVERSE)
                  END IF
               end do
            end do
            do j = 0, nzl-1
               CALL cufftExecZ2Z( bw_plan( 1, ip), &
-                   r(1+j*ldx*ldy:), r(1+j*ldx*ldy:), CUFFT_FORWARD)
+                   r(1+j*ldx*ldy:), r(1+j*ldx*ldy:), CUFFT_INVERSE)
            end do
         END IF
      ELSE
         IF( isign < 0 ) THEN
-           call cufftExecZ2Z( fw_plan( 1, ip), r(1:), r(1:), CUFFT_INVERSE)
+           call cufftExecZ2Z( fw_plan( 1, ip), r(1:), r(1:), CUFFT_FORWARD)
            tscale = 1.0_DP / ( nx * ny )
            CALL ZDSCAL( ldx * ldy * nzl, tscale, r(1), 1)
         ELSE IF( isign > 0 ) THEN
-           call cufftExecZ2Z( bw_plan( 1, ip), r(1:), r(1:), CUFFT_FORWARD)
+           call cufftExecZ2Z( bw_plan( 1, ip), r(1:), r(1:), CUFFT_INVERSE)
         END IF
      END IF
 
