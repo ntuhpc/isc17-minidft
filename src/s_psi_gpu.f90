@@ -33,8 +33,8 @@ SUBROUTINE s_psi_gpu( lda, n, m, psi, spsi )
   !
   integer, parameter ::npol=1 !substitute for noncollin_module%npol
   INTEGER, INTENT(IN) :: lda, n, m
-  COMPLEX(DP), INTENT(IN) :: psi(lda*npol,m)
-  COMPLEX(DP), INTENT(OUT)::spsi(lda*npol,m)
+  COMPLEX(DP), DEVICE, INTENT(IN) :: psi(lda*npol,m)
+  COMPLEX(DP), DEVICE, INTENT(OUT)::spsi(lda*npol,m)
   !
   INTEGER :: ibnd
   !

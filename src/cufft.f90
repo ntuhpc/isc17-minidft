@@ -12,12 +12,12 @@ MODULE cufft
   INTEGER, PUBLIC :: CUFFT_Z2D = Z'6c' ! Double-Complex to Double 
   INTEGER, PUBLIC :: CUFFT_Z2Z = Z'69' ! Double-Complex to Double-Complex
 
-  !-----------------------------------------------------------------------------
+  !-------------------------------------------------------------------
   ! cufftResult 
   !   cufftPlanMany(cufftHandle *plan, int rank, int *n, int *inembed,
   !     int istride, int idist, int *onembed, int ostride,
   !     int odist, cufftType type, int batch);
-  !-----------------------------------------------------------------------------
+  !-------------------------------------------------------------------
   INTERFACE cufftPlanMany
     SUBROUTINE cufftPlanMany(plan, rank, n, inembed, &
         istride, idist, onembed, ostride, &
@@ -29,11 +29,11 @@ MODULE cufft
     END SUBROUTINE cufftPlanMany
   END INTERFACE cufftPlanMany
 
-  !---------------------------------------------
+  !------------------------------------------------------------
   ! cufftResult 
   !   cufftExecZ2Z(cufftHandle plan, cufftDoubleComplex *idata, 
   !     cufftDoubleComplex *odata, int direction);
-  !---------------------------------------------
+  !------------------------------------------------------------
   INTERFACE cufftExecZ2Z
     SUBROUTINE cufftExecZ2Z(plan, in, out, direction) BIND(C, name='cufftExecZ2Z')
       USE iso_c_binding
@@ -43,6 +43,9 @@ MODULE cufft
     END SUBROUTINE cufftExecZ2Z
   END INTERFACE cufftExecZ2Z
 
+  !--------------------------------------------
+  ! cufftResult cufftDestroy(cufftHandle plan);
+  !--------------------------------------------
   INTERFACE cufftDestroy 
     SUBROUTINE cufftDestroy(plan) BIND(C, name='cufftDestroy') 
       USE iso_c_binding 
