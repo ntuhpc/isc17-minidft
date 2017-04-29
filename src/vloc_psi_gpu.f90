@@ -7,7 +7,7 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
   USE parallel_include
   USE kinds,   ONLY : DP
   USE gvecs, ONLY : nls_d
-  USE wvfct,   ONLY : igk_d
+  USE wvfct,   ONLY : igk_d, igk
   USE mp_global,     ONLY : me_pool, me_bgrp
   USE fft_base,      ONLY : dffts, tg_gather
   USE fft_interfaces_gpu ,ONLY : fwfft_gpu, invfft_gpu
@@ -55,6 +55,7 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
   !
   ! the local potential V_Loc psi. First bring psi to real space
   !
+  igk_d = igk
   DO ibnd = 1, m, incr
      !
      WRITE(*,*) "In loop"
