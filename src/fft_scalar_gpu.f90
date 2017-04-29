@@ -82,6 +82,7 @@
      INTEGER, INTENT(IN) :: nsl, nz, ldz
 
      COMPLEX (DP), DEVICE :: c(:), cout(:)
+     COMPLEX (DP), ALLOCATABLE :: test(:)
 
      REAL (DP)  :: tscale
      INTEGER    :: i, err, idir, ip
@@ -112,13 +113,8 @@
      !   for 32bit executables, C_POINTER is integer(4)
      !   for 64bit executables, C_POINTER is integer(8)
 
-       INTEGER :: ppp
      INTEGER, SAVE :: fw_planz( ndims ) = 0
      INTEGER, SAVE :: bw_planz( ndims ) = 0
-     INTEGER(C_INT), TARGET :: inembed(1), onembed(1), n(1)
-     inembed = (/SIZE(c)/)
-     onembed = (/SIZE(cout)/)
-     n = (/nz/)
 
 
      IF( nsl < 0 ) THEN
@@ -149,16 +145,12 @@
 
 
 
-       WRITE(*,*) "cufftDestroy"
        IF( fw_planz( icurrent) /= 0 ) CALL cufftDestroy( fw_planz( icurrent) )
        IF( bw_planz( icurrent) /= 0 ) CALL cufftDestroy( bw_planz( icurrent) )
        idir = -1
-       WRITE(*,*) "cufftPlanMany"
        !WRITE(*,*) nz, SIZE(c), SIZE(cout), ldz, nsl
        CALL cufftPlanMany( fw_planz( icurrent), 1, (/nz/), (/SIZE(c)/), 1, ldz, &
             (/SIZE(cout)/), 1, ldz, CUFFT_Z2Z, nsl )
-       !CALL cufftPlanMany( ppp, 1, (/1/), (/1/), 1, 1, &
-       !     (/1/), 1, 1, CUFFT_Z2Z, 1 )
        ! 1 = rank
        ! nz = n
        ! nsl = howmany
@@ -171,7 +163,6 @@
        ! 1 = ostride
        ! ldz = odist
        idir = 1
-       WRITE(*,*) "cufftPlanMany"
        CALL cufftPlanMany( bw_planz( icurrent), 1, (/nz/), (/SIZE(c)/), 1, ldz, &
             (/SIZE(cout)/), 1, ldz, CUFFT_Z2Z, nsl )
 
@@ -199,6 +190,9 @@
         END DO
      ELSE IF (isign > 0) THEN
         CALL cufftExecZ2Z( bw_planz( ip), c, cout, CUFFT_INVERSE )
+        !ALLOCATE(test(SIZE(cout)))
+        !test = cout
+        !WRITE(*,*) test(:10)
      END IF
 
 
@@ -261,13 +255,6 @@
      INTEGER, SAVE :: fw_plan( 2, ndims ) = 0
      INTEGER, SAVE :: bw_plan( 2, ndims ) = 0
 
-     ! for cufft inembed & onembed
-     INTEGER(C_INT), TARGET :: two_embed(2), one_embed(1), two_n(2), one_nx(1), one_ny(1)
-     one_embed = (/ ldx*ldy /)
-     two_embed = (/ nx, ny /)
-     two_n = (/nx, ny/)
-     one_nx = (/nx/)
-     one_ny = (/ny/)
 
      dofft( 1 : nx ) = .TRUE.
      IF( PRESENT( pl2ix ) ) THEN
@@ -397,13 +384,11 @@
               end do
            end do
            tscale = 1.0_DP / ( nx * ny )
-           !WRITE(*,*) "ZDSCAL"
            !$cuf kernel do <<<*,*>>>
            DO i = 1, ldx * ldy * nzl
-             r(i) = r(i) * tscale
+             r(i) = dcmplx(tscale,0.0d0) * r(i)
            END DO
            !CALL ZDSCAL( ldx * ldy * nzl, tscale, r(1), 1)
-           !WRITE(*,*) "After ZDSCAL"
         ELSE IF( isign > 0 ) THEN
            do i = 1, nx
               do k = 1, nzl
@@ -422,13 +407,11 @@
         IF( isign < 0 ) THEN
            call cufftExecZ2Z( fw_plan( 1, ip), r(1:), r(1:), CUFFT_FORWARD)
            tscale = 1.0_DP / ( nx * ny )
-           !WRITE(*,*) "ZDSCAL"
            !$cuf kernel do <<<*,*>>>
            DO i = 1, ldx * ldy * nzl
-             r(i) = r(i) * tscale
+             r(i) = dcmplx(tscale,0.0d0) * r(i)
            END DO
            !CALL ZDSCAL( ldx * ldy * nzl, tscale, r(1), 1)
-           !WRITE(*,*) "After ZDSCAL"
         ELSE IF( isign > 0 ) THEN
            call cufftExecZ2Z( bw_plan( 1, ip), r(1:), r(1:), CUFFT_INVERSE)
         END IF

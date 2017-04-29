@@ -173,6 +173,7 @@
         cout( 1 : ldz * nsl ) = cout( 1 : ldz * nsl ) * tscale
      ELSE IF (isign > 0) THEN
         CALL dfftw_execute_dft( bw_planz( ip), c, cout)
+        !WRITE(*,*) cout(:10)
      END IF
 
 

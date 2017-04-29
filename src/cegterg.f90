@@ -88,8 +88,7 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   COMPLEX(DP), ALLOCATABLE :: psi(:,:,:), hpsi(:,:,:), spsi(:,:,:)
 #ifdef __CUDA
   COMPLEX(DP), ALLOCATABLE, DEVICE :: psi_d(:,:,:), hpsi_d(:,:,:), spsi_d(:,:,:)
-  COMPLEX(DP), ALLOCATABLE, DEVICE :: hpsi_copy(:,:,:)
-  INTEGER :: i, j, k
+  COMPLEX(DP), ALLOCATABLE :: hpsi_copy(:,:,:)
 #endif
     ! work space, contains psi
     ! the product of H and psi
@@ -259,7 +258,9 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   !
 #ifdef __CUDA
   CALL h_psi_gpu( npwx, npw, nvec, psi_d, hpsi_d )
+  WRITE(*,*) "After GPU"
   CALL h_psi( npwx, npw, nvec, psi, hpsi_copy )
+  WRITE(*,*) "After CPU"
 #else
   CALL h_psi( npwx, npw, nvec, psi, hpsi )
 #endif
@@ -276,16 +277,6 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   !       continue to optimize code below later
 #ifdef __CUDA
   hpsi = hpsi_d
-  !npwx, npol, nvecx
-  DO i = 1, npwx
-    DO j = 1, npol
-      DO k = 1, nvecx
-        IF (hpsi(i,j,k) /= hpsi_copy(i,j,k)) THEN
-          WRITE(*,*) "NOT EQUAL"
-        END IF
-      END DO
-    END DO
-  END DO
   IF ( uspp ) spsi = spsi_d
 #endif
   !

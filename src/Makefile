@@ -6,4 +6,5 @@ comp = pgi
 include make.$(comp)
 
 # rules
-include Makefile.base
+arch = gpu
+include Makefile.$(arch)
