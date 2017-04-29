@@ -62,6 +62,7 @@ SUBROUTINE tg_cft3s_gpu( f, dfft, isgn, use_task_groups )
   USE kinds,      ONLY : DP
   USE fft_types,  ONLY : fft_dlay_descriptor
   USE parallel_include
+  USE cudafor
 
   !
   IMPLICIT NONE
@@ -75,7 +76,7 @@ SUBROUTINE tg_cft3s_gpu( f, dfft, isgn, use_task_groups )
   !
   INTEGER                    :: me_p
   INTEGER                    :: n1, n2, n3, nx1, nx2, nx3
-  COMPLEX(DP), ALLOCATABLE, DEVICE   :: yf(:), aux (:)
+  COMPLEX(DP), ALLOCATABLE, DEVICE :: yf(:), aux (:)
   INTEGER                    :: planes( dfft%nr1x )
   LOGICAL                    :: use_tg
   !
@@ -100,6 +101,7 @@ SUBROUTINE tg_cft3s_gpu( f, dfft, isgn, use_task_groups )
      ALLOCATE( aux( dfft%nogrp * dfft%tg_nnr ) )
      ALLOCATE( YF ( dfft%nogrp * dfft%tg_nnr ) )
   ELSE
+     WRITE(*,*) "Allocating aux on device"
      ALLOCATE( aux( dfft%tg_nnr ) )
   ENDIF
   !
@@ -118,11 +120,13 @@ SUBROUTINE tg_cft3s_gpu( f, dfft, isgn, use_task_groups )
         !
      ELSE
         !
+        WRITE(*,*) "isign = 2"
         CALL pack_group_sticks()
         !
         IF( use_tg ) THEN
            CALL cft_1z_gpu( yf, dfft%tg_nsw( me_p ), n3, nx3, isgn, aux )
         ELSE
+           WRITE(*,*) "cft_1z_gpu"
            CALL cft_1z_gpu( f, dfft%nsw( me_p ), n3, nx3, isgn, aux )
         ENDIF
         !
@@ -130,12 +134,15 @@ SUBROUTINE tg_cft3s_gpu( f, dfft, isgn, use_task_groups )
         !
      ENDIF
      !
+     WRITE(*,*) "fw_scatter"
      CALL fw_scatter( isgn ) ! forward scatter from stick to planes
      !
      IF( use_tg ) THEN
         CALL cft_2xy_gpu( f, dfft%tg_npp( me_p ), n1, n2, nx1, nx2, isgn, planes )
      ELSE
+        WRITE(*,*) "cft_2xy_gpu"
         CALL cft_2xy_gpu( f, dfft%npp( me_p ), n1, n2, nx1, nx2, isgn, planes )
+        WRITE(*,*) "after cft_2xy_gpu"
      ENDIF
      !
   ELSE
@@ -182,7 +189,9 @@ SUBROUTINE tg_cft3s_gpu( f, dfft, isgn, use_task_groups )
      !
   ENDIF
   !
-  DEALLOCATE( aux )
+  WRITE(*,*) "before aux dealloc"
+  IF (ALLOCATED(aux)) DEALLOCATE( aux )
+  WRITE(*,*) "after aux dealloc"
   !
   IF( use_tg ) THEN
      DEALLOCATE( yf )

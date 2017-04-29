@@ -151,8 +151,8 @@
        IF( fw_planz( icurrent) /= 0 ) CALL cufftDestroy( fw_planz( icurrent) )
        IF( bw_planz( icurrent) /= 0 ) CALL cufftDestroy( bw_planz( icurrent) )
        idir = -1
-       CALL cufftPlanMany( fw_planz( icurrent), 1, C_LOC(n), C_LOC(inembed), 1, ldz, &
-            C_LOC(onembed), 1, ldz, CUFFT_C2C, nsl )
+       CALL cufftPlanMany( fw_planz( icurrent), 1, (/nz/), (/SIZE(c)/), 1, ldz, &
+            (/SIZE(cout)/), 1, ldz, CUFFT_C2C, nsl )
        ! 1 = rank
        ! nz = n
        ! nsl = howmany
@@ -165,8 +165,8 @@
        ! 1 = ostride
        ! ldz = odist
        idir = 1
-       CALL cufftPlanMany( bw_planz( icurrent), 1, C_LOC(n), C_LOC(inembed), 1, ldz, &
-            C_LOC(onembed), 1, ldz, CUFFT_C2C, nsl )
+       CALL cufftPlanMany( bw_planz( icurrent), 1, (/nz/), (/SIZE(c)/), 1, ldz, &
+            (/SIZE(cout)/), 1, ldz, CUFFT_C2C, nsl )
 
        zdims(1,icurrent) = nz; zdims(2,icurrent) = nsl; zdims(3,icurrent) = ldz;
        ip = icurrent
@@ -300,8 +300,8 @@
           IF( fw_plan(2,icurrent) /= 0 )  CALL cufftDestroy( fw_plan(2,icurrent) )
           IF( bw_plan(2,icurrent) /= 0 )  CALL cufftDestroy( bw_plan(2,icurrent) )
           idir = -1
-          CALL cufftPlanMany( fw_plan(2,icurrent), 1, C_LOC(one_ny), C_LOC(one_embed), &
-               ldx, 1, C_LOC(one_embed), ldx, 1, CUFFT_C2C, 1)
+          CALL cufftPlanMany( fw_plan(2,icurrent), 1, (/ny/), (/ldx*ldy/), &
+               ldx, 1, (/ldx*ldy/), ldx, 1, CUFFT_C2C, 1)
                ! 1 = rank
                ! ny = n
                ! 1 = howmany
@@ -314,14 +314,14 @@
                ! ldx = ostride
                ! 1 = odist
           idir =  1
-          CALL cufftPlanMany( bw_plan(2,icurrent), 1, C_LOC(one_ny), C_LOC(one_embed), &
-               ldx, 1, C_LOC(one_embed), ldx, 1, CUFFT_C2C, 1)
+          CALL cufftPlanMany( bw_plan(2,icurrent), 1, (/ny/), (/ldx*ldy/), &
+               ldx, 1, (/ldx*ldy/), ldx, 1, CUFFT_C2C, 1)
 
           IF( fw_plan(1,icurrent) /= 0 ) CALL cufftDestroy( fw_plan(1,icurrent) )
           IF( bw_plan(1,icurrent) /= 0 ) CALL cufftDestroy( bw_plan(1,icurrent) )
           idir = -1
-          CALL cufftPlanMany( fw_plan(1,icurrent), 1, C_LOC(one_nx), C_LOC(one_embed), &
-               1, ldx, C_LOC(one_embed), 1, ldx, CUFFT_C2C, ny)
+          CALL cufftPlanMany( fw_plan(1,icurrent), 1, (/nx/), (/ldx*ldy/), &
+               1, ldx, (/ldx*ldy/), 1, ldx, CUFFT_C2C, ny)
                ! 1 = rank
                ! nx = n
                ! ny = howmany
@@ -334,14 +334,14 @@
                ! 1 = ostride
                ! ldx = odist
           idir =  1
-          CALL cufftPlanMany( bw_plan(1,icurrent), 1, C_LOC(one_ny), C_LOC(one_embed), &
-               1, ldx, C_LOC(one_embed), 1, ldx, CUFFT_C2C, ny)
+          CALL cufftPlanMany( bw_plan(1,icurrent), 1, (/nx/), (/ldx*ldy/), &
+               1, ldx, (/ldx*ldy/), 1, ldx, CUFFT_C2C, ny)
        ELSE
           IF( fw_plan( 1, icurrent) /= 0 ) CALL cufftDestroy( fw_plan( 1, icurrent) )
           IF( bw_plan( 1, icurrent) /= 0 ) CALL cufftDestroy( bw_plan( 1, icurrent) )
           idir = -1
-          CALL cufftPlanMany( fw_plan( 1, icurrent), 2, C_LOC(two_n), C_LOC(two_embed), &
-               1, nx*ny, C_LOC(two_embed), 1, nx*ny, CUFFT_C2C, nzl)
+          CALL cufftPlanMany( fw_plan( 1, icurrent), 2, (/nx,ny/), (/nx,ny/), &
+               1, nx*ny, (/nx,ny/), 1, nx*ny, CUFFT_C2C, nzl)
           ! 2 = rank
           ! (/nx, ny/) = n
           ! nzl = howmany
@@ -354,8 +354,8 @@
           ! 1 = ostride
           ! nx*ny = odist
           idir = 1
-          CALL cufftPlanMany( bw_plan( 1, icurrent), 2, C_LOC(two_n), C_LOC(two_embed), &
-               1, nx*ny, C_LOC(two_embed), 1, nx*ny, CUFFT_C2C, nzl)
+          CALL cufftPlanMany( fw_plan( 1, icurrent), 2, (/nx,ny/), (/nx,ny/), &
+               1, nx*ny, (/nx,ny/), 1, nx*ny, CUFFT_C2C, nzl)
        END IF
 
        dims(1,icurrent) = ny; dims(2,icurrent) = ldx;

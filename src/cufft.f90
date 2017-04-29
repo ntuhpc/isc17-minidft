@@ -24,7 +24,8 @@ MODULE cufft
         odist, type, batch) BIND(C, name='cufftPlanMany')
       USE iso_c_binding
       INTEGER(C_INT) :: plan
-      TYPE(C_PTR), VALUE :: inembed, onembed, n
+      !TYPE(C_PTR), VALUE :: inembed, onembed, n
+      INTEGER(C_INT) :: inembed(*), onembed(*), n(*)
       INTEGER(C_INT), VALUE :: rank, istride, idist, ostride, odist, type, batch
     END SUBROUTINE cufftPlanMany
   END INTERFACE cufftPlanMany

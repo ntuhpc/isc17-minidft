@@ -255,6 +255,7 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   !
 #ifdef __CUDA
   CALL h_psi_gpu( npwx, npw, nvec, psi_d, hpsi_d )
+  WRITE(*,*) "Finish h_psi"
 #else
   CALL h_psi( npwx, npw, nvec, psi, hpsi )
 #endif
@@ -262,6 +263,7 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   IF ( uspp ) THEN
 #ifdef __CUDA
     CALL s_psi_gpu( npwx, npw, nvec, psi_d, spsi_d )
+    WRITE(*,*) "Finish s_psi"
 #else
     CALL s_psi( npwx, npw, nvec, psi, spsi )
 #endif
@@ -271,7 +273,7 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   !       continue to optimize code below later
 #ifdef __CUDA
   hpsi = hpsi_d
-  psi = psi_d
+  !psi = psi_d
   IF ( uspp ) spsi = spsi_d
 #endif
   !
@@ -280,6 +282,7 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   ! ... are all distributed across processors, global replicated matrixes
   ! ... here are never allocated
   !
+  WRITE(*,*) "Before compute_distmat"
   CALL compute_distmat( hl, psi, hpsi ) 
   !
   IF ( uspp ) THEN

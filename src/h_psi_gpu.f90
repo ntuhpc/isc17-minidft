@@ -57,7 +57,9 @@ SUBROUTINE h_psi_gpu( lda, n, m, psi_d, hpsi_d )
      hpsi_d (n+1:lda,ibnd) = (0.0_dp, 0.0_dp)
   END DO
   ! TODO: if the above ALLOCATE is moved, move this too
+  WRITE(*,*) "Before dealloc g2kin_d"
   DEALLOCATE( g2kin_d )
+  WRITE(*,*) "After"
   !
   !
   !
@@ -67,6 +69,7 @@ SUBROUTINE h_psi_gpu( lda, n, m, psi_d, hpsi_d )
   !
   vrs_d(1, current_spin) = vrs(1, current_spin)
   CALL vloc_psi_k_gpu ( lda, n, m, psi_d, vrs_d(1,current_spin), hpsi_d )
+  WRITE(*,*) "After vloc_psi_k"
   vrs(1, current_spin) = vrs_d(1, current_spin)
   !
   CALL stop_clock( 'h_psi:vloc' )
@@ -77,15 +80,17 @@ SUBROUTINE h_psi_gpu( lda, n, m, psi_d, hpsi_d )
      !
      CALL start_clock( 'h_psi:vnl' )
      ! JRD: calbec done in add_vuspsi now
-     psi = psi_d
+     !psi = psi_d
      hpsi = hpsi_d
      CALL add_vuspsi( lda, n, m, psi, hpsi )
+  WRITE(*,*) "After add_vuspsi"
      !CALL add_vuspsi_gpu( lda, n, m, psi_d, hpsi_d )
      CALL stop_clock( 'h_psi:vnl' )
      !
 !JRD
   !IF ( exx_is_active() ) CALL vexx_gpu( lda, n, m, psi_d, hpsi_d )
   IF ( exx_is_active() ) CALL vexx( lda, n, m, psi, hpsi )
+  WRITE(*,*) "After vexx"
   !
   ! ... electric enthalpy if required
   !
