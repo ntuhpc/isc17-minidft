@@ -87,6 +87,7 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
         END DO
         !
         CALL invfft_gpu ('Wave', psic_d, dffts)
+        !WRITE(*,*) "Finish INVFFT"
         !
      ENDIF
      !
@@ -110,8 +111,10 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
         DO j = 1, dffts%nnr
            psic_d (j) = psic_d (j) * v(j)
         ENDDO
+        !WRITE(*,*) "CUF kernel"
         !
         CALL fwfft_gpu ('Wave', psic_d, dffts)
+        !WRITE(*,*) "Finish FWFFT"
         !
      ENDIF
      !
@@ -140,6 +143,7 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
         DO j = 1, n
            hpsi_d (j, ibnd)   = hpsi_d (j, ibnd)   + psic_d (nls_d(igk_d(j)))
         ENDDO
+        !WRITE(*,*) "Finish CUF kernel"
      ENDIF
      !
   ENDDO

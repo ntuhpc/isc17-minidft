@@ -390,7 +390,13 @@
               end do
            end do
            tscale = 1.0_DP / ( nx * ny )
-           CALL ZDSCAL( ldx * ldy * nzl, tscale, r(1), 1)
+           !WRITE(*,*) "ZDSCAL"
+           !$cuf kernel do <<<*,*>>>
+           DO i = 1, ldx * ldy * nzl
+             r(i) = r(i) * tscale
+           END DO
+           !CALL ZDSCAL( ldx * ldy * nzl, tscale, r(1), 1)
+           !WRITE(*,*) "After ZDSCAL"
         ELSE IF( isign > 0 ) THEN
            do i = 1, nx
               do k = 1, nzl
@@ -409,7 +415,13 @@
         IF( isign < 0 ) THEN
            call cufftExecZ2Z( fw_plan( 1, ip), r(1:), r(1:), CUFFT_FORWARD)
            tscale = 1.0_DP / ( nx * ny )
-           CALL ZDSCAL( ldx * ldy * nzl, tscale, r(1), 1)
+           !WRITE(*,*) "ZDSCAL"
+           !$cuf kernel do <<<*,*>>>
+           DO i = 1, ldx * ldy * nzl
+             r(i) = r(i) * tscale
+           END DO
+           !CALL ZDSCAL( ldx * ldy * nzl, tscale, r(1), 1)
+           !WRITE(*,*) "After ZDSCAL"
         ELSE IF( isign > 0 ) THEN
            call cufftExecZ2Z( bw_plan( 1, ip), r(1:), r(1:), CUFFT_INVERSE)
         END IF

@@ -39,7 +39,7 @@ MODULE cufft
       USE iso_c_binding
       USE kinds, ONLY : DP
       INTEGER(C_INT), VALUE :: plan, direction
-      COMPLEX(DP), DEVICE :: in(*), out(*)
+      COMPLEX(C_DOUBLE_COMPLEX), DEVICE :: in(*), out(*)
     END SUBROUTINE cufftExecZ2Z
   END INTERFACE cufftExecZ2Z
 

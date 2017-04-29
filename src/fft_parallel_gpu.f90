@@ -156,9 +156,11 @@ SUBROUTINE tg_cft3s_gpu( f, dfft, isgn, use_task_groups )
      IF( use_tg ) THEN
         CALL cft_2xy_gpu( f, dfft%tg_npp( me_p ), n1, n2, nx1, nx2, isgn, planes )
      ELSE
+        !WRITE(*,*) "-2 before 2xy"
         CALL cft_2xy_gpu( f, dfft%npp( me_p ), n1, n2, nx1, nx2, isgn, planes)
      ENDIF
      !
+     !WRITE(*,*) "before bw_scatter"
      CALL bw_scatter( isgn )
      !
      IF ( isgn /= -2 ) THEN
@@ -170,6 +172,7 @@ SUBROUTINE tg_cft3s_gpu( f, dfft, isgn, use_task_groups )
         IF( use_tg ) THEN
            CALL cft_1z_gpu( aux, dfft%tg_nsw( me_p ), n3, nx3, isgn, yf )
         ELSE
+           !WRITE(*,*) "-2 before 1z"
            CALL cft_1z_gpu( aux, dfft%nsw( me_p ), n3, nx3, isgn, f )
         ENDIF
         !
