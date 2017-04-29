@@ -88,6 +88,8 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   COMPLEX(DP), ALLOCATABLE :: psi(:,:,:), hpsi(:,:,:), spsi(:,:,:)
 #ifdef __CUDA
   COMPLEX(DP), ALLOCATABLE, DEVICE :: psi_d(:,:,:), hpsi_d(:,:,:), spsi_d(:,:,:)
+  COMPLEX(DP), ALLOCATABLE, DEVICE :: hpsi_copy(:,:,:)
+  INTEGER :: i, j, k
 #endif
     ! work space, contains psi
     ! the product of H and psi
@@ -151,6 +153,7 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   ALLOCATE( hpsi( npwx, npol, nvecx ), STAT=ierr )
 #ifdef __CUDA
   ALLOCATE( hpsi_d( npwx, npol, nvecx ) )
+  ALLOCATE( hpsi_copy( npwx, npol, nvecx ) )
 #endif
   IF( ierr /= 0 ) &
      CALL errore( ' pcegterg ',' cannot allocate hpsi ', ABS(ierr) )
@@ -243,6 +246,7 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   hpsi = ZERO
 #ifdef __CUDA
   hpsi_d = hpsi
+  hpsi_copy = hpsi
 #endif
   psi  = ZERO
 
@@ -255,7 +259,7 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   !
 #ifdef __CUDA
   CALL h_psi_gpu( npwx, npw, nvec, psi_d, hpsi_d )
-  WRITE(*,*) "Finish h_psi"
+  CALL h_psi( npwx, npw, nvec, psi, hpsi_copy )
 #else
   CALL h_psi( npwx, npw, nvec, psi, hpsi )
 #endif
@@ -263,7 +267,6 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   IF ( uspp ) THEN
 #ifdef __CUDA
     CALL s_psi_gpu( npwx, npw, nvec, psi_d, spsi_d )
-    WRITE(*,*) "Finish s_psi"
 #else
     CALL s_psi( npwx, npw, nvec, psi, spsi )
 #endif
@@ -273,7 +276,16 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   !       continue to optimize code below later
 #ifdef __CUDA
   hpsi = hpsi_d
-  !psi = psi_d
+  !npwx, npol, nvecx
+  DO i = 1, npwx
+    DO j = 1, npol
+      DO k = 1, nvecx
+        IF (hpsi(i,j,k) /= hpsi_copy(i,j,k)) THEN
+          WRITE(*,*) "NOT EQUAL"
+        END IF
+      END DO
+    END DO
+  END DO
   IF ( uspp ) spsi = spsi_d
 #endif
   !
@@ -282,7 +294,6 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   ! ... are all distributed across processors, global replicated matrixes
   ! ... here are never allocated
   !
-  WRITE(*,*) "Before compute_distmat"
   CALL compute_distmat( hl, psi, hpsi ) 
   !
   IF ( uspp ) THEN
