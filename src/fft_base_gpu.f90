@@ -614,7 +614,7 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
 
   TYPE (fft_dlay_descriptor), INTENT(in) :: dfft
   INTEGER, INTENT(in)           :: nr3x, nxx_, isgn, ncp_ (:), npp_ (:)
-  COMPLEX (DP), INTENT(inout)   :: f_in (nxx_), f_aux (nxx_)
+  COMPLEX (DP), INTENT(inout), DEVICE   :: f_in (nxx_), f_aux (nxx_)
   LOGICAL, OPTIONAL, INTENT(in) :: use_tg
 
 
@@ -697,6 +697,7 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
         DO k = 1, ncp_ (me)
            kdest = dest + (k - 1) * npp_ ( gproc ) - 1
            kfrom = from + (k - 1) * nr3x - 1
+           !$cuf kernel do <<<*,*>>>
            DO i = 1, npp_ ( gproc )
               f_aux ( kdest + i ) =  f_in ( kfrom + i )
            ENDDO
@@ -745,6 +746,7 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
 !$omp do private(mc,j)
         DO i = 1, dfft%nst
            mc = dfft%ismap( i )
+           !$cuf kernel do <<<*,*>>>
            DO j = 1, dfft%npp( me_p )
               f_aux( mc + ( j - 1 ) * dfft%nnp ) = f_in( j + ( i - 1 ) * nppx )
            ENDDO
@@ -789,6 +791,7 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
               !
               it = ( ii + i - 1 ) * nppx
               !
+              !$cuf kernel do <<<*,*>>>
               DO j = 1, npp
                  f_aux( mc + ( j - 1 ) * nnp ) = f_in( j + it )
               ENDDO
@@ -818,6 +821,7 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
 !$omp do
         DO i = 1, dfft%nst
            mc = dfft%ismap( i )
+           !$cuf kernel do <<<*,*>>>
            DO j = 1, dfft%npp( me_p )
               f_in( j + ( i - 1 ) * nppx ) = f_aux( mc + ( j - 1 ) * dfft%nnp )
            ENDDO
@@ -850,6 +854,7 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
            DO i = 1, dfft%nsw( ip )
               mc = dfft%ismap( i + dfft%iss( ip ) )
               it = (ii + i - 1)*nppx
+              !$cuf kernel do <<<*,*>>>
               DO j = 1, npp
                  f_in( j + it ) = f_aux( mc + ( j - 1 ) * nnp )
               ENDDO
@@ -895,6 +900,7 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
         DO k = 1, ncp_ (me)
            kdest = dest + (k - 1) * nr3x - 1
            kfrom = from + (k - 1) * npp_ ( gproc ) - 1
+           !$cuf kernel do <<<*,*>>>
            DO i = 1, npp_ ( gproc )
               f_in ( kdest + i ) = f_aux( kfrom + i )
            ENDDO
