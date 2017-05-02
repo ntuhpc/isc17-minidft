@@ -183,10 +183,9 @@
      IF (isign < 0) THEN
         CALL cufftExecZ2Z( fw_planz( ip), c, cout, CUFFT_FORWARD )
         tscale = 1.0_DP / nz
-        ! TODO: fix error
         !$cuf kernel do <<<*,*>>>
         DO i = 1, ldz * nsl
-          cout( 1 : i ) = cout( 1 : i ) * tscale
+          cout( i ) = cout( i ) * tscale
         END DO
      ELSE IF (isign > 0) THEN
         CALL cufftExecZ2Z( bw_planz( ip), c, cout, CUFFT_INVERSE )
@@ -348,7 +347,7 @@
           ! 1 = ostride
           ! nx*ny = odist
           idir = 1
-          CALL cufftPlanMany( fw_plan( 1, icurrent), 2, (/nx,ny/), (/nx,ny/), &
+          CALL cufftPlanMany( bw_plan( 1, icurrent), 2, (/nx,ny/), (/nx,ny/), &
                1, nx*ny, (/nx,ny/), 1, nx*ny, CUFFT_Z2Z, nzl)
        END IF
 

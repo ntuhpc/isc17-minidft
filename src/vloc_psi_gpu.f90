@@ -58,7 +58,6 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
   igk_d = igk
   DO ibnd = 1, m, incr
      !
-     WRITE(*,*) "In loop"
      IF ( dffts%have_task_groups ) THEN
         !
 !         tg_psic = (0.d0, 0.d0)
@@ -88,9 +87,7 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
           psic_d(nls_d(igk_d(j))) = psi_d(j, ibnd)
         END DO
         !
-        WRITE(*,*) "Before INVFFT"
         CALL invfft_gpu ('Wave', psic_d, dffts)
-        WRITE(*,*) "Finish INVFFT"
         !
      ENDIF
      !
@@ -114,10 +111,8 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
         DO j = 1, dffts%nnr
            psic_d (j) = psic_d (j) * v(j)
         ENDDO
-        !WRITE(*,*) "CUF kernel"
         !
         CALL fwfft_gpu ('Wave', psic_d, dffts)
-        WRITE(*,*) "Finish FWFFT"
         !
      ENDIF
      !
@@ -146,7 +141,6 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
         DO j = 1, n
            hpsi_d (j, ibnd)   = hpsi_d (j, ibnd)   + psic_d (nls_d(igk_d(j)))
         ENDDO
-        WRITE(*,*) "Finish CUF kernel"
      ENDIF
      !
   ENDDO

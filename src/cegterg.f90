@@ -247,8 +247,8 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   hpsi_d = hpsi
   hpsi_copy = hpsi
 #endif
-  psi  = ZERO
 
+  psi  = ZERO
   psi(:,:,1:nvec) = evc(:,:,1:nvec)
 #ifdef __CUDA
   psi_d = psi
@@ -259,8 +259,8 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
 #ifdef __CUDA
   CALL h_psi_gpu( npwx, npw, nvec, psi_d, hpsi_d )
   WRITE(*,*) "After GPU"
-  CALL h_psi( npwx, npw, nvec, psi, hpsi_copy )
-  WRITE(*,*) "After CPU"
+  !CALL h_psi( npwx, npw, nvec, psi, hpsi_copy )
+  !WRITE(*,*) "After CPU"
 #else
   CALL h_psi( npwx, npw, nvec, psi, hpsi )
 #endif
