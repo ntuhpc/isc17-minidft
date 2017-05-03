@@ -137,7 +137,7 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
 !         ENDDO
         !
      ELSE
-         !$cuf kernel do <<<*,*>>>
+        !$cuf kernel do <<<*,*>>>
         DO j = 1, n
            hpsi_d (j, ibnd)   = hpsi_d (j, ibnd)   + psic_d (nls_d(igk_d(j)))
         ENDDO

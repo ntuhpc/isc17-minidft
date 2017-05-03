@@ -65,10 +65,9 @@ SUBROUTINE h_psi_gpu( lda, n, m, psi_d, hpsi_d )
   !
   CALL start_clock( 'h_psi:vloc' )
   !
-  vrs_d(1, current_spin) = vrs(1, current_spin)
+  vrs_d = vrs
   CALL vloc_psi_k_gpu ( lda, n, m, psi_d, vrs_d(1,current_spin), hpsi_d )
   WRITE(*,*) "After vloc_psi_k"
-  vrs(1, current_spin) = vrs_d(1, current_spin)
   !
   CALL stop_clock( 'h_psi:vloc' )
   !
