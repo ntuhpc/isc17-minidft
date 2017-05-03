@@ -259,10 +259,13 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
 #ifdef __CUDA
   CALL h_psi_gpu( npwx, npw, nvec, psi_d, hpsi_d )
   WRITE(*,*) "After GPU"
+  !hpsi_copy = hpsi_d
+  !PRINT *, hpsi_copy(1,1:10)
   !CALL h_psi( npwx, npw, nvec, psi, hpsi_copy )
   !WRITE(*,*) "After CPU"
 #else
   CALL h_psi( npwx, npw, nvec, psi, hpsi )
+  PRINT *, hpsi(1,1:10)
 #endif
   !
   IF ( uspp ) THEN

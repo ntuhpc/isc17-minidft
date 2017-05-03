@@ -78,6 +78,7 @@ SUBROUTINE h_psi_gpu( lda, n, m, psi_d, hpsi_d )
      CALL start_clock( 'h_psi:vnl' )
      ! JRD: calbec done in add_vuspsi now
      hpsi = hpsi_d
+     psi = psi_d
      CALL add_vuspsi( lda, n, m, psi, hpsi )
      !CALL add_vuspsi_gpu( lda, n, m, psi_d, hpsi_d )
      CALL stop_clock( 'h_psi:vnl' )

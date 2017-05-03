@@ -23,6 +23,7 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
   COMPLEX(DP), INTENT(in), DEVICE    :: psi_d(lda, m)
   COMPLEX(DP), INTENT(inout), DEVICE :: hpsi_d(lda, m)
   REAL(DP), INTENT(in), DEVICE :: v(dffts%nnr)
+  COMPLEX(DP) :: hpsi(lda, m)
   !
   INTEGER :: ibnd, j, incr
   !
@@ -144,6 +145,9 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
      ENDIF
      !
   ENDDO
+  WRITE (*,*) "GPU after vloc"
+  hpsi = hpsi_d
+  PRINT *,hpsi(1,1:10)
   !
   IF( dffts%have_task_groups ) THEN
      !
