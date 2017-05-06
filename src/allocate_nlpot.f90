@@ -29,7 +29,7 @@ subroutine allocate_nlpot
   USE lsda_mod,         ONLY : nspin
   USE scf,              ONLY : rho
 #if defined(__CUDA) && defined(__CUFFT)
-  USE wvfct,            ONLY : npwx, npw, igk, igk_d, g2kin, ecutwfc
+  USE wvfct,            ONLY : npwx, npw, igk, igk_d, g2kin, g2kin_d, ecutwfc
 #else
   USE wvfct,            ONLY : npwx, npw, igk, g2kin, ecutwfc
 #endif

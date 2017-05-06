@@ -101,7 +101,6 @@ SUBROUTINE tg_cft3s_gpu( f, dfft, isgn, use_task_groups )
      ALLOCATE( aux( dfft%nogrp * dfft%tg_nnr ) )
      ALLOCATE( YF ( dfft%nogrp * dfft%tg_nnr ) )
   ELSE
-     WRITE(*,*) "Allocating aux on device"
      ALLOCATE( aux( dfft%tg_nnr ) )
   ENDIF
   !
@@ -184,9 +183,7 @@ SUBROUTINE tg_cft3s_gpu( f, dfft, isgn, use_task_groups )
      !
   ENDIF
   !
-  WRITE(*,*) "before aux dealloc"
   IF (ALLOCATED(aux)) DEALLOCATE( aux )
-  WRITE(*,*) "after aux dealloc"
   !
   IF( use_tg ) THEN
      DEALLOCATE( yf )

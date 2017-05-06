@@ -32,7 +32,7 @@ SUBROUTINE clean_pw( lflag )
   USE gvect,                ONLY : ig_l2g
   USE vlocal,               ONLY : strf, vloc
 #if defined(__CUDA) && defined(__CUFFT)
-  USE wvfct,                ONLY : igk, igk_d, g2kin, et, wg, btype
+  USE wvfct,                ONLY : igk, igk_d, g2kin, g2kin_d, et, wg, btype
 #else
   USE wvfct,                ONLY : igk, g2kin, et, wg, btype
 #endif
