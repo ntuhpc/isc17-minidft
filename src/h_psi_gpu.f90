@@ -24,7 +24,7 @@ SUBROUTINE h_psi_gpu( lda, n, m, psi_d, hpsi_d )
   USE kinds,    ONLY : DP
   USE lsda_mod, ONLY : current_spin
   USE scf,      ONLY : vrs, vrs_d
-  USE wvfct,    ONLY : npwx, g2kin
+  USE wvfct,    ONLY : npwx, g2kin, g2kin_d
   USE uspp,     ONLY : vkb, nkb
   USE gvect,    ONLY : gstart
   USE fft_base, ONLY : dffts
@@ -41,9 +41,6 @@ SUBROUTINE h_psi_gpu( lda, n, m, psi_d, hpsi_d )
   INTEGER     :: ipol, ibnd, incr
   ! TODO: remove this when add_vuspsi & vexx are ported to GPU
   COMPLEX(DP) :: psi(lda*npol, m), hpsi(lda*npol, m)
-  ! TODO: consider moving it elsewhere?
-  REAL(DP), ALLOCATABLE, DEVICE :: g2kin_d(:)
-  ALLOCATE( g2kin_d( npwx ) )
   g2kin_d = g2kin
   !
   !
@@ -56,8 +53,6 @@ SUBROUTINE h_psi_gpu( lda, n, m, psi_d, hpsi_d )
      hpsi_d (1:n, ibnd) = g2kin_d (1:n) * psi_d (1:n, ibnd)
      hpsi_d (n+1:lda,ibnd) = (0.0_dp, 0.0_dp)
   END DO
-  ! TODO: if the above ALLOCATE is moved, move this too
-  DEALLOCATE( g2kin_d )
   !
   !
   !

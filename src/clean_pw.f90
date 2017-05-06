@@ -136,6 +136,9 @@ SUBROUTINE clean_pw( lflag )
   IF ( ALLOCATED( igk_d ) )      DEALLOCATE( igk_d )
 #endif
   IF ( ALLOCATED( g2kin ) )      DEALLOCATE( g2kin )
+#if defined(__CUDA) && defined(__CUFFT)
+  IF ( ALLOCATED( g2kin_d) )     DEALLOCATE( g2kin_d )
+#endif
   IF ( ALLOCATED( qrad ) )       DEALLOCATE( qrad )
   IF ( ALLOCATED( tab ) )        DEALLOCATE( tab )
   IF ( ALLOCATED( tab_at ) )     DEALLOCATE( tab_at )

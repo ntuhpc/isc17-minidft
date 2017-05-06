@@ -59,7 +59,7 @@ subroutine allocate_nlpot
   !
   allocate (igk( npwx ), g2kin ( npwx ) )
 #if defined(__CUDA) && defined(__CUFFT)
-  ALLOCATE( igk_d( npwx ) )
+  ALLOCATE( igk_d( npwx ), g2kin_d(npwx) )
 #endif
   !
   ! Note: computation of the number of beta functions for
