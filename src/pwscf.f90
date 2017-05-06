@@ -20,6 +20,9 @@ PROGRAM pwscf
   USE check_stop,       ONLY : check_stop_init
   USE mp_global,        ONLY : mp_startup, mp_global_end, intra_image_comm
   USE mp_global,        ONLY : nimage, me_image, root_image, my_image_id
+#ifdef __CUDA
+  USE cuda_global,      ONLY : cuda_startup
+#endif
   USE io_files,           ONLY : tmp_dir
   USE image_io_routines,  ONLY : io_image_start
   USE read_input,         ONLY : read_input_file
@@ -39,6 +42,9 @@ PROGRAM pwscf
   !
   !
   CALL mp_startup ( )
+#ifdef __CUDA
+  CALL cuda_startup ( )
+#endif
   ! reset IO nodes
   ! (do this to make each "image head node" an ionode)
   ! Has to be used ONLY to run nimage copies of pwscf
