@@ -11,6 +11,7 @@ OBJECTS += \
 	parallel_include.o \
 	mp.o \
 	mp_global.o \
+	cuda_global.o \
 	parser.o \
 	parameters.o \
 	input_parameters.o \
