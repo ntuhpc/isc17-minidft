@@ -79,6 +79,7 @@ SUBROUTINE add_vuspsi_gpu( lda, n, m, psi, hpsi )
        vkb_d = vkb
        psi_d = psi
        ALLOCATE (becpk_d (nkb))
+       becpk_d(:) = (0.0D0,0.0D0)
        DO ibnd = 1, m
 
           ! JRD: Compute becp for just this ibnd here
@@ -108,6 +109,7 @@ SUBROUTINE add_vuspsi_gpu( lda, n, m, psi, hpsi )
           END DO
           !
        END DO
+       PRINT *,becp%k(1:10)
        !
        ! IMPROVED GEMM
        IF ( m == 1 ) THEN
