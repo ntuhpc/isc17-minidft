@@ -82,7 +82,7 @@ SUBROUTINE add_vuspsi_gpu( lda, n, m, psi, hpsi )
        DO ibnd = 1, m
 
           ! JRD: Compute becp for just this ibnd here
-          becpk_d = becp%k
+          !becpk_d = becp%k
           CALL calbec ( n, vkb_d, psi_d, becpk_d, ibnd )
           becp%k = becpk_d
           !write(*,*) 'Computing becp', ibnd

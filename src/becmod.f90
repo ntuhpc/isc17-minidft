@@ -140,7 +140,7 @@ CONTAINS
 
     IMPLICIT NONE
     COMPLEX (DP), INTENT (in), DEVICE :: beta(:,:), psi(:,:)
-    COMPLEX (DP), INTENT (inout), DEVICE :: betapsi(:)
+    COMPLEX (DP), INTENT (out), DEVICE :: betapsi(:)
     INTEGER, INTENT (in) :: npw
     INTEGER, INTENT (in) :: ibnd
     !
