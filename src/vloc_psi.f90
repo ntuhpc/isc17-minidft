@@ -332,8 +332,6 @@ SUBROUTINE vloc_psi_k(lda, n, m, psi, v, hpsi)
      ENDIF
      !
   ENDDO
-  WRITE (*,*) "CPU after vloc"
-  PRINT *, hpsi(1,1:10)
   !
   IF( dffts%have_task_groups ) THEN
      !

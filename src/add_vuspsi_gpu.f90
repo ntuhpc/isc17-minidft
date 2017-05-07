@@ -21,11 +21,11 @@ SUBROUTINE add_vuspsi_gpu( lda, n, m, psi, hpsi )
   ! output:
   !     hpsi  V_US|psi> is added to hpsi
   !
-  USE kinds,         ONLY: DP
-  USE ions_base,     ONLY: nat, ntyp => nsp, ityp
-  USE lsda_mod,      ONLY: current_spin
-  USE uspp,          ONLY: vkb, nkb, deeq, deeq_nc
-  USE uspp_param,    ONLY: nh
+  USE kinds,         ONLY : DP
+  USE ions_base,     ONLY : nat, ntyp => nsp, ityp
+  USE lsda_mod,      ONLY : current_spin
+  USE uspp,          ONLY : vkb, vkb_d, nkb, deeq, deeq_nc
+  USE uspp_param,    ONLY : nh
   USE becmod,        ONLY : bec_type, becp, calbec
   !
   IMPLICIT NONE
@@ -34,11 +34,12 @@ SUBROUTINE add_vuspsi_gpu( lda, n, m, psi, hpsi )
   !
   integer, parameter :: npol=1 !subsitute for noncollin_module%npol
   INTEGER, INTENT(IN)  :: lda, n, m
-  COMPLEX(DP), INTENT(IN)  :: psi(lda*npol,m)
+  COMPLEX(DP), INTENT(IN) :: psi(lda*npol,m)
   COMPLEX(DP), INTENT(INOUT) :: hpsi(lda*npol,m)  
   !
   ! ... here the local variables
   !
+  COMPLEX(DP), DEVICE :: psi_d(lda*npol,m)
   INTEGER :: jkb, ikb, ih, jh, na, nt, ijkb0, ibnd
     ! counters
   !
@@ -61,22 +62,29 @@ SUBROUTINE add_vuspsi_gpu( lda, n, m, psi, hpsi )
        !
        IMPLICIT NONE
        COMPLEX(DP), ALLOCATABLE :: ps (:,:)
+       COMPLEX(DP), ALLOCATABLE, DEVICE :: becpk_d(:)
        INTEGER :: ierr
        !
        IF ( nkb == 0 ) RETURN
        !
        ALLOCATE (ps (nkb,m), STAT=ierr )
        IF( ierr /= 0 ) &
-          CALL errore( ' add_vuspsi_k ', ' cannot allocate ps ', ABS( ierr ) )
+          CALL errore( ' add_vuspsi_k_gpu ', ' cannot allocate ps ', ABS( ierr ) )
        ps(:,:) = ( 0.D0, 0.D0 )
        !
        ijkb0 = 0
        !
 
+       ! these only need to be copied once
+       vkb_d = vkb
+       psi_d = psi
+       ALLOCATE (becpk_d (nkb,m))
        DO ibnd = 1, m
 
           ! JRD: Compute becp for just this ibnd here
-          CALL calbec ( n, vkb, psi, becp, ibnd )
+          becpk_d = becp%k
+          CALL calbec ( n, vkb_d, psi_d, becpk_d, ibnd )
+          becp%k = becpk_d
           !write(*,*) 'Computing becp', ibnd
 
           ijkb0 = 0
@@ -101,10 +109,24 @@ SUBROUTINE add_vuspsi_gpu( lda, n, m, psi, hpsi )
           !
        END DO
        !
-       CALL ZGEMM( 'N', 'N', n, m, nkb, ( 1.D0, 0.D0 ) , vkb, &
+       ! IMPROVED GEMM
+       IF ( m == 1 ) THEN
+          !
+          CALL ZGEMV( 'N', n, nkb, ( 1.D0, 0.D0 ), vkb, lda, ps, 1, &
+             ( 1.D0, 0.D0 ), hpsi, 1 )
+          !
+       ELSE
+          !
+          CALL ZGEMM( 'N', 'N', n, m, nkb, ( 1.D0, 0.D0 ) , vkb, &
                    lda, ps, nkb, ( 1.D0, 0.D0 ) , hpsi, lda )
+          !
+       ENDIF
+       ! ORIGINAL GEMM
+       !CALL ZGEMM( 'N', 'N', n, m, nkb, ( 1.D0, 0.D0 ) , vkb, &
+       !            lda, ps, nkb, ( 1.D0, 0.D0 ) , hpsi, lda )
        !
        DEALLOCATE (ps)
+       DEALLOCATE (becpk_d)
        !
        RETURN
        !

@@ -89,7 +89,10 @@ subroutine allocate_nlpot
   lmaxq = 2*lmaxkb+1
   !
   if (lmaxq > 0) allocate (qrad( nqxq, nbetam*(nbetam+1)/2, lmaxq, nsp))    
-  if (nkb > 0) allocate (vkb( npwx,  nkb))    
+  if (nkb > 0) allocate (vkb( npwx,  nkb))   
+#if defined(__CUDA) && defined(__CUBLAS)
+  if (nkb > 0) allocate (vkb_d( npwx, nkb))
+#endif 
   allocate (becsum( nhm * (nhm + 1)/2, nat, nspin))    
   !
   ! Calculate dimensions for array tab (including a possible factor
