@@ -46,9 +46,10 @@ MODULE becmod
   !
   INTERFACE calbec
      !
-     MODULE PROCEDURE calbec_k, calbec_bec_type
 #if defined(__CUDA) && defined(__CUBLAS)
-     MODULE PROCEDURE calbec_k_gpu
+     MODULE PROCEDURE calbec_k_gpu, calbec_k, calbec_bec_type
+#else
+     MODULE PROCEDURE calbec_k, calbec_bec_type
 #endif
      !
   END INTERFACE
@@ -134,10 +135,12 @@ CONTAINS
     !
     USE mp_global, ONLY : intra_bgrp_comm
     USE mp,        ONLY : mp_sum
+    USE cublas
+    USE cudafor
 
     IMPLICIT NONE
-    COMPLEX (DP), INTENT (in) :: beta(:,:), psi(:,:)
-    COMPLEX (DP), INTENT (out), DEVICE :: betapsi(:)
+    COMPLEX (DP), INTENT (in), DEVICE :: beta(:,:), psi(:,:)
+    COMPLEX (DP), INTENT (inout), DEVICE :: betapsi(:)
     INTEGER, INTENT (in) :: npw
     INTEGER, INTENT (in) :: ibnd
     !
@@ -153,8 +156,8 @@ CONTAINS
     IF ( nkb /= size (betapsi,1) ) &
       CALL errore ('calbec', 'size mismatch', 3)
 
-       !
-       CALL cublas_ZGEMV( 'C', npw, nkb, (1.0_DP,0.0_DP), beta, npwx, psi(:,ibnd), 1, &
+       ! this calls GPU
+       CALL ZGEMV( 'C', npw, nkb, (1.0_DP,0.0_DP), beta, npwx, psi(:,ibnd), 1, &
                    (0.0_DP, 0.0_DP), betapsi, 1 )
 
     CALL mp_sum( betapsi( : ), intra_bgrp_comm )

@@ -78,7 +78,7 @@ SUBROUTINE add_vuspsi_gpu( lda, n, m, psi, hpsi )
        ! these only need to be copied once
        vkb_d = vkb
        psi_d = psi
-       ALLOCATE (becpk_d (nkb,m))
+       ALLOCATE (becpk_d (nkb))
        DO ibnd = 1, m
 
           ! JRD: Compute becp for just this ibnd here

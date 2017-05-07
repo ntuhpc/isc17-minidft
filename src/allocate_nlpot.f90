@@ -35,8 +35,13 @@ subroutine allocate_nlpot
 #endif
   USE us,               ONLY : qrad, tab, tab_d2y, tab_at, dq, nqx, &
                                nqxq, spline_ps
+#if defined(__CUDA) && defined(__CUBLAS)
+  USE uspp,             ONLY : indv, nhtol, nhtolm, ijtoh, qq, dvan, deeq, vkb, vkb_d, &
+                               nkb, nkbus, nhtoj, becsum, qq_so, dvan_so, deeq_nc
+#else
   USE uspp,             ONLY : indv, nhtol, nhtolm, ijtoh, qq, dvan, deeq, vkb, &
                                nkb, nkbus, nhtoj, becsum, qq_so, dvan_so, deeq_nc
+#endif
   USE uspp_param,       ONLY : upf, lmaxq, lmaxkb, nh, nhm, nbetam
   USE spin_orb,         ONLY : lspinorb, fcoef
   USE control_flags,    ONLY : program_name

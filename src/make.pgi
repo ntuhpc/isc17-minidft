@@ -5,7 +5,7 @@ MATH_LIBS =  ${MKLROOT}/lib/intel64/libmkl_scalapack_lp64.a -Wl,--start-group ${
 
 LIBS = $(MATH_LIBS) -lcufft
 
-DFLAGS += -D__CUDA -D__CUFFT
+DFLAGS += -D__CUDA -D__CUFFT -D__CUBLAS
 
 CC = mpicc
 CFLAGS = -fast -I./ -I${MKLROOT}/include
@@ -14,5 +14,5 @@ FC = mpifort
 FFLAGS = -fast -Mcuda=cuda8.0 -Mpreprocess -I./ -I${MKLROOT}/include -mp -C -Meh_frame -traceback #-g #-Minform=inform -Minfo
 
 LD = mpifort
-LDFLAGS = -Mcuda=cuda8.0 -mp
+LDFLAGS = -Mcuda=cuda8.0 -Mcudalib=cublas -mp
 
