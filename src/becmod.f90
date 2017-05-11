@@ -115,9 +115,8 @@ CONTAINS
       CALL errore ('calbec', 'size mismatch', 3)
 
        !
-       CALL ZGEMV( 'C', npw, nkb, (1.0_DP,0.0_DP), beta, npwx, psi(:,ibnd), 1, &
+       CALL cublas_ZGEMV( 'C', npw, nkb, (1.0_DP,0.0_DP), beta, npwx, psi(:,ibnd), 1, &
                    (0.0_DP, 0.0_DP), betapsi, 1 )
-       !PRINT *, betapsi(1:10)
 
     CALL mp_sum( betapsi( : ), intra_bgrp_comm )
     !
@@ -146,7 +145,6 @@ CONTAINS
     INTEGER, INTENT (in) :: ibnd
     !
     INTEGER :: nkb, npwx, m
-    COMPLEX (DP) :: betapsi_cpu(size(beta,2))
     !
     nkb = size (beta, 2)
     IF ( nkb == 0 ) RETURN
@@ -161,8 +159,6 @@ CONTAINS
        ! this calls GPU
        CALL cublasZGEMV( 'C', npw, nkb, (1.0_DP,0.0_DP), beta, npwx, psi(:,ibnd), 1, &
                    (0.0_DP, 0.0_DP), betapsi, 1 )
-       betapsi_cpu = betapsi
-       !PRINT *, betapsi_cpu(1:10)
 
     CALL mp_sum( betapsi( : ), intra_bgrp_comm )
     !

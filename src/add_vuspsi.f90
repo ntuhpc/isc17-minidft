@@ -72,7 +72,6 @@ SUBROUTINE add_vuspsi( lda, n, m, psi, hpsi )
        !
        ijkb0 = 0
        !
-
        DO ibnd = 1, m
 
           ! JRD: Compute becp for just this ibnd here

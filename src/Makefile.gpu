@@ -200,7 +200,7 @@ all: mini_dft $(if $(USE_HPCTK), mini_dft.hpcstruct)
 	$(FC) $(FFLAGS) -c $<
 
 mini_dft: $(OBJECTS)
-	 $(LD) $(LDFLAGS) -o $@ $(OBJECTS) $(LIBS) $(IPM)
+	 $(LD) $(LDFLAGS) -o $@ fortran_thunking.o $(OBJECTS) $(LIBS) $(IPM)
 	 -rm -f mini_dft.hpcstruct
 
 mini_dft.hpcstruct: mini_dft

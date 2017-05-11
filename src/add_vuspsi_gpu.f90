@@ -39,7 +39,7 @@ SUBROUTINE add_vuspsi_gpu( lda, n, m, psi, hpsi )
   !
   ! ... here the local variables
   !
-  COMPLEX(DP), DEVICE :: psi_d(lda*npol,m)
+  COMPLEX(DP), ALLOCATABLE, DEVICE :: psi_d(:,:)
   INTEGER :: jkb, ikb, ih, jh, na, nt, ijkb0, ibnd
     ! counters
   !
@@ -76,6 +76,7 @@ SUBROUTINE add_vuspsi_gpu( lda, n, m, psi, hpsi )
        !
 
        ! these only need to be copied once
+       ALLOCATE(psi_d(lda*npol,m))
        vkb_d = vkb
        psi_d = psi
        ALLOCATE (becpk_d (nkb))
