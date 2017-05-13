@@ -23,7 +23,11 @@ SUBROUTINE h_psi( lda, n, m, psi, hpsi )
   !
   USE kinds,    ONLY : DP
   USE lsda_mod, ONLY : current_spin
+#if defined(__CUDA) && defined(__CUFFT)
+  USE scf,      ONLY : vrs, vrs_d
+#else
   USE scf,      ONLY : vrs  
+#endif
   USE wvfct,    ONLY : g2kin
   USE uspp,     ONLY : vkb, nkb
   USE gvect,    ONLY : gstart
@@ -36,7 +40,10 @@ SUBROUTINE h_psi( lda, n, m, psi, hpsi )
   integer, parameter :: npol=1 !substitute for noncollin_module%npol
   INTEGER, INTENT(IN)     :: lda, n, m
   COMPLEX(DP), INTENT(IN)  :: psi(lda*npol,m) 
-  COMPLEX(DP), INTENT(OUT) :: hpsi(lda*npol,m)   
+  COMPLEX(DP), INTENT(OUT) :: hpsi(lda*npol,m)
+#if defined(__CUDA) && defined(__CUFFT)
+  COMPLEX(DP), ALLOCATABLE, DEVICE :: psi_d(:,:), hpsi_d(:,:)
+#endif
   !
   INTEGER     :: ipol, ibnd, incr
   !
@@ -55,7 +62,16 @@ SUBROUTINE h_psi( lda, n, m, psi, hpsi )
   !
   CALL start_clock( 'h_psi:vloc' )
   !
+#if defined(__CUDA) && defined(__CUFFT)
+     ALLOCATE( psi_d(lda*npol,m), hpsi_d(lda*npol,m) )
+     psi_d = psi
+     hpsi_d = hpsi
+     vrs_d = vrs
+     CALL vloc_psi_k ( lda, n, m, psi_d, vrs_d(1,current_spin), hpsi_d )
+     hpsi = hpsi_d
+#else
      CALL vloc_psi_k ( lda, n, m, psi, vrs(1,current_spin), hpsi )
+#endif
      !
   CALL stop_clock( 'h_psi:vloc' )
   !
