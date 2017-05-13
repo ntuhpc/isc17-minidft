@@ -24,6 +24,7 @@ SUBROUTINE h_psi( lda, n, m, psi, hpsi )
   USE kinds,    ONLY : DP
   USE lsda_mod, ONLY : current_spin
 #if defined(__CUDA) && defined(__CUFFT)
+  USE cudafor
   USE scf,      ONLY : vrs, vrs_d
 #else
   USE scf,      ONLY : vrs  
@@ -67,7 +68,7 @@ SUBROUTINE h_psi( lda, n, m, psi, hpsi )
      psi_d = psi
      hpsi_d = hpsi
      vrs_d = vrs
-     CALL vloc_psi_k ( lda, n, m, psi_d, vrs_d(1,current_spin), hpsi_d )
+     CALL vloc_psi_k_gpu ( lda, n, m, psi_d, vrs_d(1,current_spin), hpsi_d )
      hpsi = hpsi_d
 #else
      CALL vloc_psi_k ( lda, n, m, psi, vrs(1,current_spin), hpsi )
