@@ -80,19 +80,27 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
     ! do-loop counters
   INTEGER :: ierr
   REAL(DP), ALLOCATABLE :: ew(:)
+#if defined(__CUDA) && defined(__PINNED_MEM)
+  COMPLEX(DP), ALLOCATABLE, PINNED :: hl(:,:), sl(:,:), vl(:,:)
+    ! Hamiltonian on the reduced basis
+    ! S matrix on the reduced basis
+    ! eigenvectors of the Hamiltonian
+    ! eigenvalues of the reduced hamiltonian
+  COMPLEX(DP), ALLOCATABLE, PINNED :: psi(:,:,:), hpsi(:,:,:), spsi(:,:,:)
+    ! work space, contains psi
+    ! the product of H and psi
+    ! the product of S and psi
+#else
   COMPLEX(DP), ALLOCATABLE :: hl(:,:), sl(:,:), vl(:,:)
     ! Hamiltonian on the reduced basis
     ! S matrix on the reduced basis
     ! eigenvectors of the Hamiltonian
     ! eigenvalues of the reduced hamiltonian
   COMPLEX(DP), ALLOCATABLE :: psi(:,:,:), hpsi(:,:,:), spsi(:,:,:)
-#ifdef __CUDA
-  COMPLEX(DP), ALLOCATABLE, DEVICE :: psi_d(:,:,:), hpsi_d(:,:,:), spsi_d(:,:,:)
-  COMPLEX(DP), ALLOCATABLE :: hpsi_copy(:,:,:)
-#endif
     ! work space, contains psi
     ! the product of H and psi
     ! the product of S and psi
+#endif
   LOGICAL, ALLOCATABLE :: conv(:)
     ! true if the root is converged
   REAL(DP) :: empty_ethr 
@@ -143,25 +151,15 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   END IF
 
   ALLOCATE(  psi( npwx, npol, nvecx ), STAT=ierr )
-#ifdef __CUDA
-  ALLOCATE(  psi_d( npwx, npol, nvecx ) )
-#endif
   IF( ierr /= 0 ) &
      CALL errore( ' pcegterg ',' cannot allocate psi ', ABS(ierr) )
   !
   ALLOCATE( hpsi( npwx, npol, nvecx ), STAT=ierr )
-#ifdef __CUDA
-  ALLOCATE( hpsi_d( npwx, npol, nvecx ) )
-  ALLOCATE( hpsi_copy( npwx, npol, nvecx ) )
-#endif
   IF( ierr /= 0 ) &
      CALL errore( ' pcegterg ',' cannot allocate hpsi ', ABS(ierr) )
   !
   IF ( uspp ) THEN
      ALLOCATE( spsi( npwx, npol, nvecx ), STAT=ierr )
-#ifdef __CUDA
-     ALLOCATE( spsi_d( npwx, npol, nvecx ) )
-#endif
      IF( ierr /= 0 ) &
         CALL errore( ' pcegterg ',' cannot allocate spsi ', ABS(ierr) )
   END IF
@@ -237,51 +235,19 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   !
   IF ( uspp ) THEN
     spsi = ZERO
-#ifdef __CUDA
-    spsi_d = spsi
-#endif
   END IF
   !
   hpsi = ZERO
-#ifdef __CUDA
-  hpsi_d = hpsi
-  hpsi_copy = hpsi
-#endif
-
   psi  = ZERO
   psi(:,:,1:nvec) = evc(:,:,1:nvec)
-#ifdef __CUDA
-  psi_d = psi
-#endif
   !
   ! ... hpsi contains h times the basis vectors
   !
-#ifdef __CUDA
-  CALL h_psi_gpu( npwx, npw, nvec, psi_d, hpsi_d )
-  WRITE(*,*) "After GPU"
-  !hpsi_copy = hpsi_d
-  !PRINT *, hpsi_copy(1,1:10)
-  !CALL h_psi( npwx, npw, nvec, psi, hpsi_copy )
-  !WRITE(*,*) "After CPU"
-#else
   CALL h_psi( npwx, npw, nvec, psi, hpsi )
-  PRINT *, hpsi(1,1:10)
-#endif
   !
   IF ( uspp ) THEN
-#ifdef __CUDA
-    CALL s_psi_gpu( npwx, npw, nvec, psi_d, spsi_d )
-#else
     CALL s_psi( npwx, npw, nvec, psi, spsi )
-#endif
   END IF
-
-  ! TODO: currently it copies data back here
-  !       continue to optimize code below later
-#ifdef __CUDA
-  hpsi = hpsi_d
-  IF ( uspp ) spsi = spsi_d
-#endif
   !
   ! ... hl contains the projection of the hamiltonian onto the reduced
   ! ... space, vl contains the eigenvectors of hl. Remember hl, vl and sl
@@ -548,17 +514,10 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   !
   IF ( uspp ) THEN
     DEALLOCATE( spsi )
-#ifdef __CUDA
-    DEALLOCATE( spsi_d )
-#endif
   END IF
   !
   DEALLOCATE( hpsi )
   DEALLOCATE( psi )
-#ifdef __CUDA
-  DEALLOCATE( hpsi_d )
-  DEALLOCATE( psi_d )
-#endif
   !
   CALL stop_clock( 'cegterg' )
   !
