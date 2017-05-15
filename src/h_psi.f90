@@ -70,6 +70,7 @@ SUBROUTINE h_psi( lda, n, m, psi, hpsi )
      vrs_d = vrs
      CALL vloc_psi_k_gpu ( lda, n, m, psi_d, vrs_d(1,current_spin), hpsi_d )
      hpsi = hpsi_d
+     DEALLOCATE( psi_d, hpsi_d )
 #else
      CALL vloc_psi_k ( lda, n, m, psi, vrs(1,current_spin), hpsi )
 #endif
