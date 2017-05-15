@@ -313,13 +313,14 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
            nppx = dfft%npp( me_p )
         ENDIF
 
-!$omp parallel default(shared)
-!$omp do
+!!$omp parallel default(shared)
+!!$omp do
+        !$cuf kernel do(1) <<<*,*>>>
         DO i = 1, size(f_aux)
            f_aux(i) = (0.d0, 0.d0)
         ENDDO
         !
-!$omp do private(mc,j)
+!!$omp do private(mc,j)
         DO i = 1, dfft%nst
            mc = dfft%ismap( i )
            !$cuf kernel do(1) <<<*,*>>>
@@ -327,7 +328,7 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
               f_aux( mc + ( j - 1 ) * dfft%nnp ) = f_in( j + ( i - 1 ) * nppx )
            ENDDO
         ENDDO
-!$omp end parallel
+!!$omp end parallel
 
      ELSE
 
@@ -348,8 +349,9 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
            !
         ENDIF
         !
-!$omp parallel default(shared), private( ii, mc, j, i, ioff, ip, it )
-!$omp do
+!!$omp parallel default(shared), private( ii, mc, j, i, ioff, ip, it )
+!!$omp do
+        !$cuf kernel do(1) <<<*,*>>>
         DO i = 1, size( f_aux )
            f_aux(i) = (0.d0, 0.d0)
         ENDDO
@@ -360,7 +362,7 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
            !
            ioff = dfft%iss( ip )
            !
-!$omp do
+!!$omp do
            DO i = 1, dfft%nsw( ip )
               !
               mc = dfft%ismap( i + ioff )
@@ -377,7 +379,7 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
            ii = ii + dfft%nsw( ip )
            !
         ENDDO
-!$omp end parallel
+!!$omp end parallel
 
      END IF
      ! 
@@ -392,8 +394,8 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
         ELSE
            nppx = dfft%npp( me_p )
         ENDIF
-!$omp parallel default(shared), private( mc, j, i )
-!$omp do
+!!$omp parallel default(shared), private( mc, j, i )
+!!$omp do
         DO i = 1, dfft%nst
            mc = dfft%ismap( i )
            !$cuf kernel do(1) <<<*,*>>>
@@ -401,7 +403,7 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
               f_in( j + ( i - 1 ) * nppx ) = f_aux( mc + ( j - 1 ) * dfft%nnp )
            ENDDO
         ENDDO
-!$omp end parallel
+!!$omp end parallel
 
      ELSE
 
@@ -422,10 +424,10 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
            !
         ENDIF
 
-!$omp parallel default(shared), private( mc, j, i, ii, ip, it )
+!!$omp parallel default(shared), private( mc, j, i, ii, ip, it )
         ii = 0
         DO ip = 1, dfft%nproc
-!$omp do
+!!$omp do
            DO i = 1, dfft%nsw( ip )
               mc = dfft%ismap( i + dfft%iss( ip ) )
               it = (ii + i - 1)*nppx
@@ -436,7 +438,7 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
            ENDDO
            ii = ii + dfft%nsw( ip )
         ENDDO
-!$omp end parallel
+!!$omp end parallel
 
      END IF
      !
@@ -737,13 +739,14 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
            nppx = dfft%npp( me_p )
         ENDIF
 
-!$omp parallel default(shared)
-!$omp do
+!!$omp parallel default(shared)
+!!$omp do
+        !$cuf kernel do(1) <<<*,*>>>
         DO i = 1, size(f_aux)
            f_aux(i) = (0.d0, 0.d0)
         ENDDO
         !
-!$omp do private(mc,j)
+!!$omp do private(mc,j)
         DO i = 1, dfft%nst
            mc = dfft%ismap( i )
            !$cuf kernel do <<<*,*>>>
@@ -751,7 +754,7 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
               f_aux( mc + ( j - 1 ) * dfft%nnp ) = f_in( j + ( i - 1 ) * nppx )
            ENDDO
         ENDDO
-!$omp end parallel
+!!$omp end parallel
 
      ELSE
 
@@ -772,8 +775,9 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
            !
         ENDIF
         !
-!$omp parallel default(shared), private( ii, mc, j, i, ioff, ip, it )
-!$omp do
+!!$omp parallel default(shared), private( ii, mc, j, i, ioff, ip, it )
+!!$omp do
+        !$cuf kernel do(1) <<<*,*>>>
         DO i = 1, size( f_aux )
            f_aux(i) = (0.d0, 0.d0)
         ENDDO
@@ -784,7 +788,7 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
            !
            ioff = dfft%iss( ip )
            !
-!$omp do
+!!$omp do
            DO i = 1, dfft%nsw( ip )
               !
               mc = dfft%ismap( i + ioff )
@@ -801,7 +805,7 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
            ii = ii + dfft%nsw( ip )
            !
         ENDDO
-!$omp end parallel
+!!$omp end parallel
 
 
      END IF
@@ -817,8 +821,8 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
         ELSE
            nppx = dfft%npp( me_p )
         ENDIF
-!$omp parallel default(shared), private( mc, j, i )
-!$omp do
+!!$omp parallel default(shared), private( mc, j, i )
+!!$omp do
         DO i = 1, dfft%nst
            mc = dfft%ismap( i )
            !$cuf kernel do <<<*,*>>>
@@ -826,7 +830,7 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
               f_in( j + ( i - 1 ) * nppx ) = f_aux( mc + ( j - 1 ) * dfft%nnp )
            ENDDO
         ENDDO
-!$omp end parallel
+!!$omp end parallel
 
      ELSE
 
@@ -847,10 +851,10 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
            !
         ENDIF
 
-!$omp parallel default(shared), private( mc, j, i, ii, ip, it )
+!!$omp parallel default(shared), private( mc, j, i, ii, ip, it )
         ii = 0
         DO ip = 1, dfft%nproc
-!$omp do
+!!$omp do
            DO i = 1, dfft%nsw( ip )
               mc = dfft%ismap( i + dfft%iss( ip ) )
               it = (ii + i - 1)*nppx
@@ -861,7 +865,7 @@ SUBROUTINE fft_scatter_gpu ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, us
            ENDDO
            ii = ii + dfft%nsw( ip )
         ENDDO
-!$omp end parallel
+!!$omp end parallel
 
      END IF
 
