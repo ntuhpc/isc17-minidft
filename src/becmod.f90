@@ -115,7 +115,7 @@ CONTAINS
       CALL errore ('calbec', 'size mismatch', 3)
 
        !
-       CALL cublas_ZGEMV( 'C', npw, nkb, (1.0_DP,0.0_DP), beta, npwx, psi(:,ibnd), 1, &
+       CALL ZGEMV( 'C', npw, nkb, (1.0_DP,0.0_DP), beta, npwx, psi(:,ibnd), 1, &
                    (0.0_DP, 0.0_DP), betapsi, 1 )
 
     CALL mp_sum( betapsi( : ), intra_bgrp_comm )
@@ -125,6 +125,7 @@ CONTAINS
     RETURN
     !
   END SUBROUTINE calbec_k
+#if defined(__CUDA) && defined(__CUBLAS)
   !
   !-----------------------------------------------------------------------
   SUBROUTINE calbec_k_gpu ( npw, beta, psi, betapsi, ibnd )
@@ -167,6 +168,7 @@ CONTAINS
     RETURN
     !
   END SUBROUTINE calbec_k_gpu
+#endif
   !
   !-----------------------------------------------------------------------
   SUBROUTINE allocate_bec_type ( nkb, bec, comm )
