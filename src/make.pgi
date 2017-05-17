@@ -5,7 +5,7 @@ MATH_LIBS =  ${MKLROOT}/lib/intel64/libmkl_scalapack_lp64.a -Wl,--start-group ${
 
 LIBS = -lphigemm -lcufft -lcublas $(MATH_LIBS)
 
-DFLAGS += -D__CUDA -D__PHIGEMM -D__CUBLAS -D__PINNED_MEM -D__CUFFT
+DFLAGS += -D__CUDA -D__PHIGEMM -D__CUBLAS -D__PINNED_MEM -D__CUFFT -D__NONBLOCKING_FFT
 
 CC = mpicc
 CFLAGS = -fast -I./ -I${MKLROOT}/include
@@ -14,7 +14,7 @@ FC = mpifort
 FFLAGS = -fast -Mcuda=cuda8.0 -Mpreprocess -I./ -I${MKLROOT}/include -mp #-C -Meh_frame -traceback #-g #-Minform=inform -Minfo
 
 NVCC = nvcc
-NVCCFLAGS = -O3
+NVCCFLAGS = -O3 -I/home/siyuan/phiGEMM/include
 
 LD = mpifort
 LDFLAGS = -Mcuda=cuda8.0 -mp -L/home/siyuan/phiGEMM/lib

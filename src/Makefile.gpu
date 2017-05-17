@@ -3,7 +3,6 @@ CFLAGS += $(DFLAGS)
 FFLAGS += $(DFLAGS)
 
 OBJECTS += \
-    phigemm_env.cu \
 	kind.o \
 	constants.o \
 	radial_grids.o \
@@ -196,9 +195,6 @@ all: mini_dft $(if $(USE_HPCTK), mini_dft.hpcstruct)
 
 %.o : %.f90 
 	$(FC) $(FFLAGS) -c $<
-
-%.o : %.cu
-    $(NVCC) $(NVCCFLAGS) -c $<
 
 mini_dft: $(OBJECTS)
 	 $(LD) $(LDFLAGS) -o $@ $(OBJECTS) $(LIBS) $(IPM)
