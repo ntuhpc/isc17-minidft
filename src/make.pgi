@@ -13,6 +13,9 @@ CFLAGS = -fast -I./ -I${MKLROOT}/include
 FC = mpifort
 FFLAGS = -fast -Mcuda=cuda8.0 -Mpreprocess -I./ -I${MKLROOT}/include -mp #-C -Meh_frame -traceback #-g #-Minform=inform -Minfo
 
+NVCC = nvcc
+NVCCFLAGS = -O3
+
 LD = mpifort
 LDFLAGS = -Mcuda=cuda8.0 -mp -L/home/siyuan/phiGEMM/lib
 

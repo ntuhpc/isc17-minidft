@@ -148,6 +148,9 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   !
   !
   CALL start_clock( 'cegterg' )
+#if defined(__CUDA) && defined(__PHIGEMM)
+  CALL initCudaEnv()
+#endif
   !
   IF ( nvec > nvecx / 2 ) CALL errore( 'regter', 'nvecx is too small', 1 )
   !
@@ -535,6 +538,9 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   !
   DEALLOCATE( hpsi )
   DEALLOCATE( psi )
+#if defined(__CUDA) && defined(__PHIGEMM)
+  CALL closeCudaEnv()
+#endif
   !
   CALL stop_clock( 'cegterg' )
   !
