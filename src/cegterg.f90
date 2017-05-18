@@ -5,21 +5,8 @@
 ! in the root directory of the present distribution,
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
-#if defined(__CUDA) && defined(__PHIGEMM)
-#define dgemm UDGEMM
-#define zgemm UZGEMM
-#define DGEMM UDGEMM
-#define ZGEMM UZGEMM
-#if defined(__PHIGEMM_PROFILE)
-#define _STRING_LINE_(s) #s
-#define _STRING_LINE2_(s) _STRING_LINE_(s)
-#define __LINESTR__ _STRING_LINE2_(__LINE__)
-#define UDGEMM(TRANSA,TRANSB,M,N,K,ALPHA,A,LDA,B,LDB,BETA,C,LDC) phidgemm(TRANSA,TRANSB,M,N,K,ALPHA,A,LDA,B,LDB,BETA,C,LDC,__FILE__,__LINESTR__)
-#define UZGEMM(TRANSA,TRANSB,M,N,K,ALPHA,A,LDA,B,LDB,BETA,C,LDC) phizgemm(TRANSA,TRANSB,M,N,K,ALPHA,A,LDA,B,LDB,BETA,C,LDC,__FILE__,__LINESTR__)
-#else
-#define UDGEMM phidgemm
-#define UZGEMM phizgemm
-#endif
+#if defined(__CUDA) && defined(__CUBLAS)
+#define ZGEMM cublas_ZGEMM
 #endif
 
 #define ZERO ( 0.D0, 0.D0 )
@@ -148,9 +135,6 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   !
   !
   CALL start_clock( 'cegterg' )
-#if defined(__CUDA) && defined(__PHIGEMM)
-  CALL initCudaEnv()
-#endif
   !
   IF ( nvec > nvecx / 2 ) CALL errore( 'regter', 'nvecx is too small', 1 )
   !
@@ -538,9 +522,6 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   !
   DEALLOCATE( hpsi )
   DEALLOCATE( psi )
-#if defined(__CUDA) && defined(__PHIGEMM)
-  CALL closeCudaEnv()
-#endif
   !
   CALL stop_clock( 'cegterg' )
   !
