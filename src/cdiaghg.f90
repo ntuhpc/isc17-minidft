@@ -82,7 +82,8 @@ SUBROUTINE pcdiaghg( n, h, s, ldh, e, v, desc )
      IF( info /= 0 ) CALL errore( ' cdiaghg ', ' desckinit ', ABS( info ) )
      !
 
-     CALL pzpotrf( 'L', n, ss, 1, 1, descsca, info )
+     !CALL pzpotrf( 'L', n, ss, 1, 1, descsca, info )
+     CALL magma_zpotrf_m( 1, 'L', n, ss, ldh, info )
 
      IF( info /= 0 ) CALL errore( ' cdiaghg ', ' problems computing cholesky ', ABS( info ) )
      !
