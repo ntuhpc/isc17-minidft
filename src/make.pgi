@@ -3,9 +3,9 @@ MKLROOT   = /opt/mkl/mkl
 
 MATH_LIBS =  ${MKLROOT}/lib/intel64/libmkl_scalapack_lp64.a -Wl,--start-group ${MKLROOT}/lib/intel64/libmkl_intel_lp64.a ${MKLROOT}/lib/intel64/libmkl_pgi_thread.a ${MKLROOT}/lib/intel64/libmkl_core.a ${MKLROOT}/lib/intel64/libmkl_blacs_openmpi_lp64.a -Wl,--end-group -lpthread -lm -ldl
 
-LIBS = -lmagma -lcufft -lcublas $(MATH_LIBS)
+LIBS = -lmagma -lcufft -lcublas $(MATH_LIBS) -lgomp
 
-DFLAGS += -D__CUDA -D__CUBLAS -D__PINNED_MEM -D__CUFFT #-D__NONBLOCKING_FFT
+DFLAGS += -D__CUDA -D__CUBLAS -D__PINNED_MEM -D__CUFFT -D__MAGMA #-D__NONBLOCKING_FFT
 
 CC = mpicc
 CFLAGS = -fast -I./ -I${MKLROOT}/include
@@ -17,5 +17,5 @@ NVCC = nvcc
 NVCCFLAGS = -O3
 
 LD = mpifort
-LDFLAGS = -Mcuda=cuda8.0 -mp
+LDFLAGS = -Mcuda=cuda8.0 -mp -L/home/siyuan/magma/install/lib
 
