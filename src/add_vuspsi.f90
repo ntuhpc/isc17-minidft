@@ -100,8 +100,17 @@ SUBROUTINE add_vuspsi( lda, n, m, psi, hpsi )
           !
        END DO
        !
-       CALL ZGEMM( 'N', 'N', n, m, nkb, ( 1.D0, 0.D0 ) , vkb, &
+       IF ( m == 1 ) THEN
+          !
+          CALL ZGEMV( 'N', n, nkb, ( 1.D0, 0.D0 ), vkb, lda, ps, 1, &
+             ( 1.D0, 0.D0 ), hpsi, 1 )
+          !
+       ELSE
+          !
+          CALL ZGEMM( 'N', 'N', n, m, nkb, ( 1.D0, 0.D0 ) , vkb, &
                    lda, ps, nkb, ( 1.D0, 0.D0 ) , hpsi, lda )
+          !
+       ENDIF
        !
        DEALLOCATE (ps)
        !

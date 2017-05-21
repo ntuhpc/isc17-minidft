@@ -281,7 +281,11 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
      ! ... diagonalize the reduced hamiltonian
      !     Calling block parallel algorithm
      !
+#if defined(__CUDA) && defined(__MAGMA)
+     CALL cdiaghg_gpu( nbase, nvec, hl, sl, nx, ew, vl )
+#else
      CALL pcdiaghg( nbase, hl, sl, nx, ew, vl, desc )
+#endif
      !
      e(1:nvec) = ew(1:nvec)
      !
@@ -405,7 +409,11 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
      ! ... diagonalize the reduced hamiltonian
      !     Call block parallel algorithm
      !
+#if defined(__CUDA) && defined(__MAGMA)
+     CALL cdiaghg_gpu( nbase, nvec, hl, sl, nx, ew, vl )
+#else
      CALL pcdiaghg( nbase, hl, sl, nx, ew, vl, desc )
+#endif
      !
      ! ... test for convergence
      !
