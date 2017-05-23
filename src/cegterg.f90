@@ -84,6 +84,7 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
     ! do-loop counters
   INTEGER :: ierr
   REAL(DP), ALLOCATABLE :: ew(:)
+    ! eigenvalues of the reduced hamiltonian
 #if defined(__CUDA) && defined(__PINNED_MEM)
   COMPLEX(DP), ALLOCATABLE, PINNED :: hl(:,:), sl(:,:), vl(:,:)
     ! Hamiltonian on the reduced basis
@@ -109,6 +110,7 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
     ! true if the root is converged
   REAL(DP) :: empty_ethr 
     ! threshold for empty bands
+#if !defined(__MAGMA)
   TYPE(la_descriptor) :: desc, desc_old
   INTEGER, ALLOCATABLE :: irc_ip( : )
   INTEGER, ALLOCATABLE :: nrc_ip( : )
@@ -120,6 +122,7 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
     ! flag to distinguish procs involved in linear algebra
   INTEGER, ALLOCATABLE :: notcnv_ip( : )
   INTEGER, ALLOCATABLE :: ic_notcnv( : )
+#endif
   !
   REAL(DP), EXTERNAL :: ddot
   !
@@ -167,6 +170,7 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
      IF( ierr /= 0 ) &
         CALL errore( ' pcegterg ',' cannot allocate spsi ', ABS(ierr) )
   END IF
+#if !defined(__MAGMA)
   !
   ! ... Initialize the matrix descriptor
   !
@@ -224,6 +228,17 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
         CALL errore( ' pcegterg ',' cannot allocate hl ', ABS(ierr) )
      !
   END IF
+#else
+  ALLOCATE( sl( nvecx, nvecx ), STAT=ierr )
+  IF( ierr /= 0 ) &
+     CALL errore( ' cegterg ',' cannot allocate sc ', ABS(ierr) )
+  ALLOCATE( hl( nvecx, nvecx ), STAT=ierr )
+  IF( ierr /= 0 ) &
+     CALL errore( ' cegterg ',' cannot allocate hc ', ABS(ierr) )
+  ALLOCATE( vl( nvecx, nvecx ), STAT=ierr )
+  IF( ierr /= 0 ) &
+     CALL errore( ' cegterg ',' cannot allocate vc ', ABS(ierr) )
+#endif
   !
   ALLOCATE( ew( nvecx ), STAT=ierr )
   IF( ierr /= 0 ) &
@@ -252,6 +267,7 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   IF ( uspp ) THEN
     CALL s_psi( npwx, npw, nvec, psi, spsi )
   END IF
+#if !defined(__MAGMA)
   !
   ! ... hl contains the projection of the hamiltonian onto the reduced
   ! ... space, vl contains the eigenvectors of hl. Remember hl, vl and sl
@@ -269,12 +285,46 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
      CALL compute_distmat( sl, psi, psi )  
      !
   END IF
+#else
+  hl(:,:) = ZERO
+  sl(:,:) = ZERO
+  vl(:,:) = ZERO
+  !
+  CALL ZGEMM( 'C', 'N', nbase, nbase, kdim, ONE, &
+              psi, kdmx, hpsi, kdmx, ZERO, hl, nvecx )
+  !
+  CALL mp_sum( hl( :, 1:nbase ), intra_bgrp_comm )
+  !
+  IF ( uspp ) THEN
+     !
+     CALL ZGEMM( 'C', 'N', nbase, nbase, kdim, ONE, &
+                 psi, kdmx, spsi, kdmx, ZERO, sl, nvecx )
+     !     
+  ELSE
+     !
+     CALL ZGEMM( 'C', 'N', nbase, nbase, kdim, ONE, &
+                 psi, kdmx, psi, kdmx, ZERO, sl, nvecx )
+     !
+  END IF
+  !
+  CALL mp_sum( sc( :, 1:nbase ), intra_bgrp_comm )
+#endif
   !
   IF ( lrot ) THEN
      !
+#if !defined(__MAGMA)
      CALL set_e_from_h()
      !
      CALL set_to_identity( vl, desc )
+#else
+     DO n = 1, nbase
+        !
+        e(n) = REAL( hl(n,n) )
+        !
+        vc(n,n) = ONE
+        !
+     END DO
+#endif
      !
   ELSE
      !
@@ -298,6 +348,294 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
      dav_iter = kter
      !
      CALL start_clock( 'cegterg:update' )
+#if defined(__MAGMA) && defined(__CUDA)
+     np = 0
+     !
+     DO n = 1, nvec
+        !
+        IF ( .NOT. conv(n) ) THEN
+           !
+           ! ... this root not yet converged ... 
+           !
+           np = np + 1
+           !
+           ! ... reorder eigenvectors so that coefficients for unconverged
+           ! ... roots come first. This allows to use quick matrix-matrix 
+           ! ... multiplications to set a new basis vector (see below)
+           !
+           IF ( np /= n ) vl(:,np) = vl(:,n)
+           !
+           ! ... for use in g_psi
+           !
+           ew(nbase+np) = e(n)
+           !
+        END IF
+        !
+     END DO
+     !
+     nb1 = nbase + 1
+     !
+     ! ... expand the basis set with new basis vectors ( H - e*S )|psi> ...
+     !
+     IF ( uspp ) THEN
+        !
+        IF ( notcnv == 1 ) THEN
+           !
+           CALL ZGEMV( 'N', kdim, nbase, ONE, spsi, kdmx, vl, 1, ZERO, &
+                     psi(1,1,nb1), 1 )
+           !
+        ELSE
+           !
+           CALL ZGEMM( 'N', 'N', kdim, notcnv, nbase, ONE, spsi, &
+               kdmx, vl, nvecx, ZERO, psi(1,1,nb1), kdmx )
+
+           !
+        ENDIF
+        !     
+     ELSE
+        !
+        IF ( notcnv == 1 ) THEN
+           !
+           CALL ZGEMV( 'N', kdim, nbase, ONE, psi, kdmx, vl, 1, ZERO, &
+                     psi(1,1,nb1), 1 )
+           !
+        ELSE
+           !
+           CALL ZGEMM( 'N', 'N', kdim, notcnv, nbase, ONE, psi, &
+                  kdmx, vl, nvecx, ZERO, psi(1,1,nb1), kdmx )
+           !
+        ENDIF
+        !
+     END IF
+     !
+     DO np = 1, notcnv
+        !
+        psi(:,:,nbase+np) = - ew(nbase+np)*psi(:,:,nbase+np)
+        !
+     END DO
+     !
+     IF ( notcnv == 1 ) THEN
+        !
+        CALL ZGEMV( 'N', kdim, nbase, ONE, hpsi, kdmx, vl, 1, ONE, &
+             psi(1,1,nb1), 1 )
+        !
+     ELSE
+        !
+        CALL ZGEMM( 'N', 'N', kdim, notcnv, nbase, ONE, hpsi, &
+                 kdmx, vl, nvecx, ONE, psi(1,1,nb1), kdmx )
+        !
+     ENDIF
+     !
+     CALL stop_clock( 'cegterg:update' )
+     !
+     ! ... approximate inverse iteration
+     !
+     CALL g_psi( npwx, npw, notcnv, npol, psi(1,1,nb1), ew(nb1) )
+     !
+     ! ... "normalize" correction vectors psi(:,nb1:nbase+notcnv) in
+     ! ... order to improve numerical stability of subspace diagonalization
+     ! ... (cdiaghg) ew is used as work array :
+     !
+     ! ...         ew = <psi_i|psi_i>,  i = nbase + 1, nbase + notcnv
+     !
+     DO n = 1, notcnv
+        !
+        nbn = nbase + n
+        !
+        IF ( npol == 1 ) THEN
+           !
+           ew(n) = ddot( 2*npw, psi(1,1,nbn), 1, psi(1,1,nbn), 1 )
+           !
+        ELSE
+           !
+           ew(n) = ddot( 2*npw, psi(1,1,nbn), 1, psi(1,1,nbn), 1 ) + &
+                   ddot( 2*npw, psi(1,2,nbn), 1, psi(1,2,nbn), 1 )
+           !
+        END IF
+        !
+     END DO
+     !
+     CALL mp_sum( ew( 1:notcnv ), intra_bgrp_comm )
+     !
+     DO n = 1, notcnv
+        !
+        psi(:,:,nbase+n) = psi(:,:,nbase+n) / SQRT( ew(n) )
+        !
+     END DO
+     !
+     ! ... here compute the hpsi and spsi of the new functions
+     !
+     !
+     CALL h_psi( npwx, npw, notcnv, psi(1,1,nb1), hpsi(1,1,nb1) )
+     !
+     IF ( uspp ) &
+        CALL s_psi( npwx, npw, notcnv, psi(1,1,nb1), spsi(1,1,nb1) )
+     !
+     ! ... update the reduced hamiltonian
+     !
+     CALL start_clock( 'cegterg:overlap' )
+     !
+     IF ( notcnv == 1 ) THEN
+        !
+        CALL ZGEMV( 'C', kdim, nbase+notcnv, ONE, psi, kdmx, hpsi(1,1,nb1), 1, ZERO, &
+                     hl(1,nb1), 1 )
+        !
+     ELSE
+        !
+        CALL ZGEMM( 'C', 'N', nbase+notcnv, notcnv, kdim, ONE, psi, &
+                 kdmx, hpsi(1,1,nb1), kdmx, ZERO, hl(1,nb1), nvecx )
+        !
+     ENDIF
+     !
+     CALL mp_sum( hl( :, nb1:nb1+notcnv-1 ), intra_bgrp_comm )
+     !
+     IF ( uspp ) THEN
+        !
+        IF ( notcnv == 1 ) THEN
+           !
+           CALL ZGEMV( 'C', kdim, nbase+notcnv, ONE, psi, kdmx, spsi(1,1,nb1), 1, ZERO, &
+                     sl(1,nb1), 1 )
+           !
+        ELSE
+           !
+           CALL ZGEMM( 'C', 'N', nbase+notcnv, notcnv, kdim, ONE, psi, &
+               kdmx, spsi(1,1,nb1), kdmx, ZERO, sl(1,nb1), nvecx )
+           !
+        ENDIF
+        !     
+     ELSE
+        !
+        IF ( notcnv == 1 ) THEN
+           !
+           CALL ZGEMV( 'C', kdim, nbase+notcnv, ONE, psi, kdmx, psi(1,1,nb1), 1, ZERO, &
+                     sl(1,nb1), 1 )
+           !
+        ELSE
+           !
+           CALL ZGEMM( 'C', 'N', nbase+notcnv, notcnv, kdim, ONE, psi, &
+                  kdmx, psi(1,1,nb1), kdmx, ZERO, sl(1,nb1), nvecx )
+          !
+        ENDIF
+        !
+     END IF
+     !
+     CALL mp_sum( sl( :, nb1:nb1+notcnv-1 ), intra_bgrp_comm )
+     !
+     CALL stop_clock( 'cegterg:overlap' )
+     !
+     nbase = nbase + notcnv
+     !
+     DO n = 1, nbase
+        !
+        ! ... the diagonal of hc and sc must be strictly real 
+        !
+        hl(n,n) = CMPLX( REAL( hl(n,n) ), 0.D0 ,kind=DP)
+        sl(n,n) = CMPLX( REAL( sl(n,n) ), 0.D0 ,kind=DP)
+        !
+        DO m = n + 1, nbase
+           !
+           hl(m,n) = CONJG( hl(n,m) )
+           sl(m,n) = CONJG( sl(n,m) )
+           !
+        END DO
+        !
+     END DO
+     !
+     ! ... diagonalize the reduced hamiltonian
+     !
+     CALL cdiaghg_gpu( nbase, nvec, hl, sl, nvecx, ew, vc )
+     !
+     ! ... test for convergence
+     !
+     WHERE( btype(1:nvec) == 1 )
+        !
+        conv(1:nvec) = ( ( ABS( ew(1:nvec) - e(1:nvec) ) < ethr ) )
+        !
+     ELSEWHERE
+        !
+        conv(1:nvec) = ( ( ABS( ew(1:nvec) - e(1:nvec) ) < empty_ethr ) )
+        !
+     END WHERE
+     !
+     notcnv = COUNT( .NOT. conv(:) )
+     !
+     e(1:nvec) = ew(1:nvec)
+     !
+     ! ... if overall convergence has been achieved, or the dimension of
+     ! ... the reduced basis set is becoming too large, or in any case if
+     ! ... we are at the last iteration refresh the basis set. i.e. replace
+     ! ... the first nvec elements with the current estimate of the
+     ! ... eigenvectors;  set the basis dimension to nvec.
+     !
+     IF ( notcnv == 0 .OR. &
+          nbase+notcnv > nvecx .OR. dav_iter == maxter ) THEN
+        !
+        CALL start_clock( 'cegterg:last' )
+        !
+        CALL ZGEMM( 'N', 'N', kdim, nvec, nbase, ONE, &
+                    psi, kdmx, vl, nvecx, ZERO, evc, kdmx )
+        !
+        IF ( notcnv == 0 ) THEN
+           !
+           ! ... all roots converged: return
+           !
+           CALL stop_clock( 'cegterg:last' )
+           !
+           EXIT iterate
+           !
+        ELSE IF ( dav_iter == maxter ) THEN
+           !
+           ! ... last iteration, some roots not converged: return
+           !
+           !!!WRITE( stdout, '(5X,"WARNING: ",I5, &
+           !!!     &   " eigenvalues not converged")' ) notcnv
+           !
+           CALL stop_clock( 'cegterg:last' )
+           !
+           EXIT iterate
+           !
+        END IF
+        !
+        ! ... refresh psi, H*psi and S*psi
+        !
+        psi(:,:,1:nvec) = evc(:,:,1:nvec)
+        !
+        IF ( uspp ) THEN
+           !
+           CALL ZGEMM( 'N', 'N', kdim, nvec, nbase, ONE, spsi, &
+                       kdmx, vl, nvecx, ZERO, psi(1,1,nvec+1), kdmx )
+           !
+           spsi(:,:,1:nvec) = psi(:,:,nvec+1:nvec+nvec)
+           !
+        END IF
+        !
+        CALL ZGEMM( 'N', 'N', kdim, nvec, nbase, ONE, hpsi, &
+                    kdmx, vl, nvecx, ZERO, psi(1,1,nvec+1), kdmx )
+        !
+        hpsi(:,:,1:nvec) = psi(:,:,nvec+1:nvec+nvec)
+        !
+        ! ... refresh the reduced hamiltonian 
+        !
+        nbase = nvec
+        !
+        hl(:,1:nbase) = ZERO
+        sl(:,1:nbase) = ZERO
+        vl(:,1:nbase) = ZERO
+        !
+        DO n = 1, nbase
+           !
+!           hc(n,n) = REAL( e(n) )
+           hl(n,n) = CMPLX( e(n), 0.0_DP ,kind=DP)
+           !
+           sl(n,n) = ONE
+           vl(n,n) = ONE
+           !
+        END DO
+        !
+        CALL stop_clock( 'cegterg:last' )
+        !
+     END IF
+#else
      !
      CALL reorder_v()
      !
@@ -409,11 +747,7 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
      ! ... diagonalize the reduced hamiltonian
      !     Call block parallel algorithm
      !
-#if defined(__CUDA) && defined(__MAGMA)
-     CALL cdiaghg_gpu( nbase, nvec, hl, sl, nx, ew, vl )
-#else
      CALL pcdiaghg( nbase, hl, sl, nx, ew, vl, desc )
-#endif
      !
      ! ... test for convergence
      !
@@ -512,15 +846,18 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
         !
      END IF
      !
+#endif
   END DO iterate
   !
   DEALLOCATE( vl, hl, sl )
   !
+#if !defined(__MAGMA) || !defined(__CUDA)
   DEALLOCATE( rank_ip )
   DEALLOCATE( ic_notcnv )
   DEALLOCATE( irc_ip )
   DEALLOCATE( nrc_ip )
   DEALLOCATE( notcnv_ip )
+#endif
   DEALLOCATE( conv )
   DEALLOCATE( ew )
   !
