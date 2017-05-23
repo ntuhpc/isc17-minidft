@@ -22,6 +22,7 @@ SUBROUTINE cdiaghg_gpu( n, m, h, s, ldh, e, v )
   USE kinds,            ONLY : DP
   USE mp,               ONLY : mp_bcast, mp_sum, mp_barrier, mp_max
   USE mp_global,         ONLY : me_bgrp, root_bgrp, intra_bgrp_comm
+  USE cudafor
   !
   IMPLICIT NONE
   !
@@ -52,6 +53,7 @@ SUBROUTINE cdiaghg_gpu( n, m, h, s, ldh, e, v )
 #if defined(__ZHEGVD)
   COMPLEX(DP), ALLOCATABLE :: vv(:,:)
 #endif
+  INTEGER :: num_of_gpu, cuda_err
   !
   CALL start_clock( 'cdiaghg' )
   !
@@ -75,8 +77,7 @@ SUBROUTINE cdiaghg_gpu( n, m, h, s, ldh, e, v )
      ! ... check for optimal block size
      !
      ! magic number. See magma_get_zhetrd_nb()
-     !nb = 32
-     nb = 64 ! from magma/control/get_nb.cpp
+     nb = 64 !!! update from magma/control/get_nb.cpp
      lwork = ( nb + 1 )*n
      !
 #if defined(__ZHEGVD)
@@ -101,7 +102,8 @@ SUBROUTINE cdiaghg_gpu( n, m, h, s, ldh, e, v )
         ALLOCATE( iwork( liwork ) )
         ALLOCATE( rwork( lrwork ) )
         !
-        CALL magmaf_zhegvd( 1,  'V', 'U', n, v, ldh, s, ldh, e, &
+        cuda_err = cudaGetDeviceCount( num_of_gpu )
+        CALL magmaf_zhegvd_m(num_of_gpu, 1, 'V', 'U', n, v, ldh, s, ldh, e, &
                       work, lwork, rwork, lrwork, iwork, liwork, info)
         !
 #else
@@ -135,7 +137,6 @@ SUBROUTINE cdiaghg_gpu( n, m, h, s, ldh, e, v )
         abstol = 0.D0
         ! abstol = 2.D0*DLAMCH( 'S' )
         !
-        !CALL  zhegvx( 1, 'V', 'I', 'U', n, h, ldh, s, ldh, &
         CALL  magmaf_zhegvx( 1, 'V', 'I', 'U', n, h, ldh, s, ldh, &
                      0.D0, 0.D0, 1, m, abstol, mm, e, v, ldh, &
                      work, lwork, rwork, iwork, ifail, info )
