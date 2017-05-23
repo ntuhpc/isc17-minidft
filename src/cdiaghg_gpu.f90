@@ -134,7 +134,8 @@ SUBROUTINE cdiaghg_gpu( n, m, h, s, ldh, e, v )
         abstol = 0.D0
         ! abstol = 2.D0*DLAMCH( 'S' )
         !
-        CALL  magmaf_zhegvx( 1, 'V', 'I', 'U', n, h, ldh, s, ldh, &
+        !CALL  magmaf_zhegvx( 1, 'V', 'I', 'U', n, h, ldh, s, ldh, &
+        CALL  zhegvx( 1, 'V', 'I', 'U', n, h, ldh, s, ldh, &
                      0.D0, 0.D0, 1, m, abstol, mm, e, v, ldh, &
                      work, lwork, rwork, iwork, ifail, info )
         !

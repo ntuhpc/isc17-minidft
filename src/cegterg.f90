@@ -77,7 +77,7 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   !INTEGER, PARAMETER :: maxter = 1
     ! maximum number of iterations
   !
-  INTEGER :: kter, nbase, np, kdim, kdmx, n, nb1, nbn
+  INTEGER :: kter, nbase, np, kdim, kdmx, n, m, nb1, nbn
     ! counter on iterations
     ! dimension of the reduced basis
     ! counter on the reduced basis vectors
@@ -332,7 +332,7 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
      !     Calling block parallel algorithm
      !
 #if defined(__CUDA) && defined(__MAGMA)
-     CALL cdiaghg_gpu( nbase, nvec, hl, sl, nx, ew, vl )
+     CALL cdiaghg_gpu( nbase, nvec, hl, sl, nvecx, ew, vl )
 #else
      CALL pcdiaghg( nbase, hl, sl, nx, ew, vl, desc )
 #endif
@@ -543,7 +543,7 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
      !
      ! ... diagonalize the reduced hamiltonian
      !
-     CALL cdiaghg_gpu( nbase, nvec, hl, sl, nvecx, ew, vc )
+     CALL cdiaghg_gpu( nbase, nvec, hl, sl, nvecx, ew, vl )
      !
      ! ... test for convergence
      !
