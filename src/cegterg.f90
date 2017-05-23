@@ -307,7 +307,7 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
      !
   END IF
   !
-  CALL mp_sum( sc( :, 1:nbase ), intra_bgrp_comm )
+  CALL mp_sum( sl( :, 1:nbase ), intra_bgrp_comm )
 #endif
   !
   IF ( lrot ) THEN
@@ -321,7 +321,7 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
         !
         e(n) = REAL( hl(n,n) )
         !
-        vc(n,n) = ONE
+        vl(n,n) = ONE
         !
      END DO
 #endif
@@ -873,6 +873,7 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   RETURN
   !
   !
+#if !defined(__MAGMA) || !defined(__CUDA)
 CONTAINS
   !
   !
@@ -1364,6 +1365,7 @@ CONTAINS
 
      RETURN
   END SUBROUTINE refresh_evc
+#endif
   !
   !
 END SUBROUTINE pcegterg
