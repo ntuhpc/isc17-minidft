@@ -121,6 +121,7 @@ OBJECTS += \
 	c_bands.o \
 	ccgdiagg.o \
 	cdiaghg.o \
+	cdiaghg_gpu.o \
 	cegterg.o \
 	symme.o \
 	close_files.o \
