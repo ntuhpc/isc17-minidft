@@ -10,7 +10,7 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
   USE wvfct,   ONLY : igk_d, igk
   USE mp_global,     ONLY : me_pool, me_bgrp
   USE fft_base,      ONLY : dffts, dfftp
-  USE fft_base_gpu   ONLY : tg_gather_gpu
+  USE fft_base_gpu,  ONLY : tg_gather_gpu
   USE fft_interfaces_gpu ,ONLY : fwfft_gpu, invfft_gpu
   USE wavefunctions_module,  ONLY: psic
   !
@@ -21,7 +21,7 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
   COMPLEX(DP), INTENT(inout), DEVICE :: hpsi_d(lda, m)
   REAL(DP), INTENT(in), DEVICE :: v(dffts%nnr)
   !
-  INTEGER :: ibnd, j, incr
+  INTEGER :: ibnd, j, incr, end_iter
   !
   LOGICAL :: use_tg
   ! Task Groups
@@ -77,7 +77,7 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
 
         ENDDO
         !
-        CALL  invfft ('Wave', tg_psic, dffts)
+        CALL  invfft_gpu ('Wave', tg_psic, dffts)
         !
      ELSE
         !
@@ -97,12 +97,13 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
      !
      IF ( dffts%have_task_groups ) THEN
         !
-        !$cuf kernel do(1) <<<*,*>>>
-        DO j = 1, dffts%nr1x*dffts%nr2x*dffts%tg_npp( me_bgrp + 1 )
+        end_iter = dffts%nr1x*dffts%nr2x*dffts%tg_npp( me_bgrp + 1 )
+        !$cuf kernel do <<<*,*>>>
+        DO j = 1, end_iter 
            tg_psic (j) = tg_psic (j) * tg_v(j)
         ENDDO
         !
-        CALL fwfft ('Wave',  tg_psic, dffts)
+        CALL fwfft_gpu ('Wave',  tg_psic, dffts)
         !
      ELSE
         !
