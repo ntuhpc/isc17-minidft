@@ -6,7 +6,9 @@ MODULE cuda_global
 
     CONTAINS
         SUBROUTINE cuda_startup ( )
-            CALL cudaSetDevice( mpime )
+            INTEGER :: num_of_gpu, cuda_err
+            cuda_err = cudaGetDeviceCount( num_of_gpu )
+            CALL cudaSetDevice( mod(mpime, num_of_gpu) )
             CALL magmaf_init()
         END SUBROUTINE cuda_startup
 
