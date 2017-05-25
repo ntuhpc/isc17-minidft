@@ -1446,13 +1446,8 @@ CONTAINS
      lwork = -1
      lrwork = -1
      liwork = -1
-!#if defined(__CUDA) && defined(__MAGMA)
-!     CALL magmaf_zheevd_m( 1, 'V', 'L', n, h, SIZE( h, 1 ), w, &
-!                           ztmp, LWORK, rtmp, LRWORK, itmp, LIWORK, INFO )
-!#else
      CALL PZHEEVD( 'V', 'L', n, h, 1, 1, desch, w, v, 1, 1, &
                    desch, ztmp, LWORK, rtmp, LRWORK, itmp, LIWORK, INFO )
-!#endif
 
      IF( info /= 0 ) CALL errore( ' cdiaghg ', ' PZHEEVD ', ABS( info ) )
 
@@ -1464,13 +1459,8 @@ CONTAINS
      ALLOCATE( rwork( lrwork ) )
      ALLOCATE( iwork( liwork ) )
 
-!#if defined(__CUDA) && defined(__MAGMA)
-!     CALL magmaf_zheevd_m( 1, 'V', 'L', n, h, SIZE( h, 1 ), w, &
-!                           work, LWORK, rwork, LRWORK, iwork, LIWORK, INFO )
-!#else
      CALL PZHEEVD( 'V', 'L', n, h, 1, 1, desch, w, v, 1, 1, &
                    desch, work, LWORK, rwork, LRWORK, iwork, LIWORK, INFO )
-!#endif
 
      IF( info /= 0 ) CALL errore( ' cdiaghg ', ' PZHEEVD ', ABS( info ) )
 

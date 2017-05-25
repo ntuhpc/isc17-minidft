@@ -49,11 +49,7 @@ SUBROUTINE pcdiaghg( n, h, s, ldh, e, v, desc )
   INTEGER             :: nx
   INTEGER             :: descsca( 16 ), info
     ! local block size
-#if defined(__CUDA) && defined(__PINNED_MEM)
-  COMPLEX(DP), ALLOCATABLE, PINNED :: ss(:,:), hh(:,:), tt(:,:)
-#else
    COMPLEX(DP), ALLOCATABLE :: ss(:,:), hh(:,:), tt(:,:)
-#endif
     ! work space used only in parallel diagonalization
   !
   ! ... input s and h are copied so that they are not destroyed
@@ -86,11 +82,7 @@ SUBROUTINE pcdiaghg( n, h, s, ldh, e, v, desc )
      IF( info /= 0 ) CALL errore( ' cdiaghg ', ' desckinit ', ABS( info ) )
      !
 
-#if defined(__CUDA) && defined(__MAGMA)
-     CALL magmaf_zpotrf_m( 1, 'L', n, ss, ldh, info )
-#else
      CALL pzpotrf( 'L', n, ss, 1, 1, descsca, info )
-#endif
 
      IF( info /= 0 ) CALL errore( ' cdiaghg ', ' problems computing cholesky ', ABS( info ) )
      !
@@ -109,11 +101,7 @@ SUBROUTINE pcdiaghg( n, h, s, ldh, e, v, desc )
      !
      CALL sqr_zsetmat( 'U', n, ZERO, ss, size(ss,1), desc )
      !
-#if defined(__CUDA) && defined(__MAGMA)
-     CALL magmaf_ztrtri( 'L', 'N', n, ss, ldh, info )
-#else
      CALL pztrtri( 'L', 'N', n, ss, 1, 1, descsca, info )
-#endif
      !
      IF( info /= 0 ) CALL errore( ' cdiaghg ', ' problems computing inverse ', ABS( info ) )
      !

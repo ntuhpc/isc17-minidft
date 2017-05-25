@@ -10,7 +10,6 @@ MODULE cuda_global
             INTEGER :: num_of_gpu, cuda_err
             cuda_err = cudaGetDeviceCount( num_of_gpu )
             cuda_err = cudaSetDevice( mod(mpime, num_of_gpu) )
-            CALL magmaf_init()
         END SUBROUTINE cuda_startup
 
 END MODULE cuda_global
