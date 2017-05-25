@@ -9,13 +9,9 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
   USE gvecs, ONLY : nls_d
   USE wvfct,   ONLY : igk_d, igk
   USE mp_global,     ONLY : me_pool, me_bgrp
-  USE fft_base,      ONLY : dffts, tg_gather
+  USE fft_base,      ONLY : dffts, dfftp, tg_gather
   USE fft_interfaces_gpu ,ONLY : fwfft_gpu, invfft_gpu
-#if defined(__CUDA) && defined(__CUFFT)
-  USE wavefunctions_module,  ONLY: psic_d, psic
-#else
   USE wavefunctions_module,  ONLY: psic
-#endif
   !
   IMPLICIT NONE
   !
@@ -31,6 +27,8 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
   REAL(DP),    ALLOCATABLE :: tg_v(:)
   COMPLEX(DP), ALLOCATABLE :: tg_psic(:)
   INTEGER :: v_siz, idx, ioff
+  ! GPU workspace
+  COMPLEX(DP), ALLOCATABLE, DEVICE :: psic_d(:)
   !
   !
   ! The following is dirty trick to prevent usage of task groups if
@@ -41,7 +39,7 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
   !
   incr = 1
   !
-!   IF( dffts%have_task_groups ) THEN
+  IF( dffts%have_task_groups ) THEN
 !      !
 !      v_siz =  dffts%tg_nnr * dffts%nogrp
 !      !
@@ -51,7 +49,9 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
 !      CALL tg_gather( dffts, v, tg_v )
 !      incr = dffts%nogrp
 !      !
-!   ENDIF
+  ELSE
+    ALLOCATE( psic_d( dfftp%nnr ) )
+  ENDIF
   !
   ! the local potential V_Loc psi. First bring psi to real space
   !

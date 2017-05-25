@@ -23,15 +23,9 @@ SUBROUTINE allocate_fft
   USE ions_base, ONLY : nat
   USE lsda_mod,  ONLY : nspin
   USE spin_orb,  ONLY : domag
-#if defined(__CUDA) && defined(__CUFFT)
-  USE wavefunctions_module, ONLY : psic_d, psic
-  USE scf,       ONLY : rho, v, vnew, vltot, vrs, vrs_d, rho_core, rhog_core, &
-                        kedtau, create_scf_type
-#else
   USE wavefunctions_module, ONLY : psic
   USE scf,       ONLY : rho, v, vnew, vltot, vrs, rho_core, rhog_core, &
                         kedtau, create_scf_type
-#endif
   IMPLICIT NONE
   !
   !     determines the data structure for fft arrays
@@ -69,14 +63,8 @@ SUBROUTINE allocate_fft
   ALLOCATE( rho_core( dfftp%nnr) )
   ALLOCATE( kedtau(1,nspin) )
   ALLOCATE( rhog_core( ngm ) )
-#if defined(__CUDA) && defined(__CUFFT)
-  ALLOCATE( psic_d( dfftp%nnr ) )
-#endif
   ALLOCATE( psic( dfftp%nnr) )
   ALLOCATE( vrs( dfftp%nnr, nspin) )
-#if defined(__CUDA) && defined(__CUFFT)
-  ALLOCATE( vrs_d( dfftp%nnr, nspin ) )
-#endif
 
 ! DCC
 !  IF( do_coarse ) THEN

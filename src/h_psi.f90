@@ -22,17 +22,12 @@ SUBROUTINE h_psi( lda, n, m, psi, hpsi )
   ! ...    hpsi  H*psi
   !
   USE kinds,    ONLY : DP
-  USE lsda_mod, ONLY : current_spin
-#if defined(__CUDA) && defined(__CUFFT)
-  USE cudafor
-  USE scf,      ONLY : vrs, vrs_d
-#else
+  USE lsda_mod, ONLY : current_spin, nspin
   USE scf,      ONLY : vrs  
-#endif
   USE wvfct,    ONLY : g2kin
   USE uspp,     ONLY : vkb, nkb
   USE gvect,    ONLY : gstart
-  USE fft_base, ONLY : dffts
+  USE fft_base, ONLY : dffts, dfftp
   USE exx,      ONLY : vexx
   USE funct,    ONLY : exx_is_active
   !
@@ -44,6 +39,7 @@ SUBROUTINE h_psi( lda, n, m, psi, hpsi )
   COMPLEX(DP), INTENT(OUT) :: hpsi(lda*npol,m)
 #if defined(__CUDA) && defined(__CUFFT)
   COMPLEX(DP), ALLOCATABLE, DEVICE :: psi_d(:,:), hpsi_d(:,:)
+  REAL(DP), ALLOCATABLE, DEVICE :: vrs_d(:,:)
 #endif
   !
   INTEGER     :: ipol, ibnd, incr
@@ -65,12 +61,14 @@ SUBROUTINE h_psi( lda, n, m, psi, hpsi )
   !
 #if defined(__CUDA) && defined(__CUFFT)
      ALLOCATE( psi_d(lda*npol,m), hpsi_d(lda*npol,m) )
+     ALLOCATE( vrs_d(dfftp%nnr, nspin) )
      psi_d = psi
      hpsi_d = hpsi
      vrs_d = vrs
      CALL vloc_psi_k_gpu ( lda, n, m, psi_d, vrs_d(1,current_spin), hpsi_d )
      hpsi = hpsi_d
      DEALLOCATE( psi_d, hpsi_d )
+     DEALLOCATE( vrs_d )
 #else
      CALL vloc_psi_k ( lda, n, m, psi, vrs(1,current_spin), hpsi )
 #endif
