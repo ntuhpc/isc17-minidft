@@ -1,21 +1,21 @@
 # math libraries
-MKLROOT   = /opt/mkl/mkl
+MKLROOT   = /opt/intel/mkl
 
 MATH_LIBS =  ${MKLROOT}/lib/intel64/libmkl_scalapack_lp64.a -Wl,--start-group ${MKLROOT}/lib/intel64/libmkl_intel_lp64.a ${MKLROOT}/lib/intel64/libmkl_pgi_thread.a ${MKLROOT}/lib/intel64/libmkl_core.a ${MKLROOT}/lib/intel64/libmkl_blacs_openmpi_lp64.a -Wl,--end-group -lpthread -lm -ldl
 
-LIBS = -lmagma -lcufft -lcublas $(MATH_LIBS) -lgomp
+LIBS = -lmagma -lcufft -lcublas $(MATH_LIBS)
 
-DFLAGS += -D__CUDA -D__CUBLAS -D__PINNED_MEM -D__CUFFT -D__MAGMA -D__ZHEGVD #-D__NONBLOCKING_FFT
+DFLAGS += -D__CUDA -D__CUBLAS -D__PINNED_MEM -D__CUFFT -D__MAGMA -D__ZHEGVD -D__NONBLOCKING_FFT
 
 CC = mpicc
-CFLAGS = -fast -I./ -I${MKLROOT}/include
+CFLAGS = -fast -I${MKLROOT}/include/fftw -I./ -I${MKLROOT}/include
 
 FC = mpifort
-FFLAGS = -fast -Mcuda=cuda8.0 -Mpreprocess -I./ -I${MKLROOT}/include -mp #-C -Meh_frame -traceback #-g #-Minform=inform -Minfo
+FFLAGS = -fast -Mcuda=cuda8.0 -Mpreprocess -I${MKLROOT}/include -I${MKLROOT}/include/fftw -I./ -mp #-C -Meh_frame -traceback #-g #-Minform=inform -Minfo
 
 NVCC = nvcc
 NVCCFLAGS = -O3
 
 LD = mpifort
-LDFLAGS = -Mcuda=cuda8.0 -mp -L/home/siyuan/magma/install/lib
+LDFLAGS = -Mcuda=cuda8.0 -mp -L/home/public/minidft/thirdparty/magma-pgi/lib
 
