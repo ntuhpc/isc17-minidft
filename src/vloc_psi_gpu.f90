@@ -9,7 +9,8 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
   USE gvecs, ONLY : nls_d
   USE wvfct,   ONLY : igk_d, igk
   USE mp_global,     ONLY : me_pool, me_bgrp
-  USE fft_base,      ONLY : dffts, dfftp, tg_gather
+  USE fft_base,      ONLY : dffts, dfftp
+  USE fft_base_gpu   ONLY : tg_gather_gpu
   USE fft_interfaces_gpu ,ONLY : fwfft_gpu, invfft_gpu
   USE wavefunctions_module,  ONLY: psic
   !
@@ -24,8 +25,8 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
   !
   LOGICAL :: use_tg
   ! Task Groups
-  REAL(DP),    ALLOCATABLE :: tg_v(:)
-  COMPLEX(DP), ALLOCATABLE :: tg_psic(:)
+  REAL(DP),    ALLOCATABLE, DEVICE :: tg_v(:)
+  COMPLEX(DP), ALLOCATABLE, DEVICE :: tg_psic(:)
   INTEGER :: v_siz, idx, ioff
   ! GPU workspace
   COMPLEX(DP), ALLOCATABLE, DEVICE :: psic_d(:)
@@ -40,15 +41,15 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
   incr = 1
   !
   IF( dffts%have_task_groups ) THEN
-!      !
-!      v_siz =  dffts%tg_nnr * dffts%nogrp
-!      !
-!      ALLOCATE( tg_v   ( v_siz ) )
-!      ALLOCATE( tg_psic( v_siz ) )
-!      !
-!      CALL tg_gather( dffts, v, tg_v )
-!      incr = dffts%nogrp
-!      !
+     !
+     v_siz =  dffts%tg_nnr * dffts%nogrp
+     !
+     ALLOCATE( tg_v   ( v_siz ) )
+     ALLOCATE( tg_psic( v_siz ) )
+     !
+     CALL tg_gather_gpu( dffts, v, tg_v )
+     incr = dffts%nogrp
+     !
   ELSE
     ALLOCATE( psic_d( dfftp%nnr ) )
   ENDIF
@@ -60,24 +61,23 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
      !
      IF ( dffts%have_task_groups ) THEN
         !
-!         tg_psic = (0.d0, 0.d0)
-!         ioff   = 0
-!         !
-!         DO idx = 1, dffts%nogrp
+        tg_psic = (0.d0, 0.d0)
+        ioff   = 0
+        !
+        DO idx = 1, dffts%nogrp
 
-!            IF( idx + ibnd - 1 <= m ) THEN
-! !$omp parallel do
-!               DO j = 1, n
-!                  tg_psic(nls (igk(j))+ioff) =  psi_d(j,idx+ibnd-1)
-!               ENDDO
-! !$omp end parallel do
-!            ENDIF
+           IF( idx + ibnd - 1 <= m ) THEN
+              !$cuf kernel do(1) <<<*,*>>>
+              DO j = 1, n
+                 tg_psic(nls_d(igk_d(j))+ioff) =  psi_d(j,idx+ibnd-1)
+              ENDDO
+           ENDIF
 
-!            ioff = ioff + dffts%tg_nnr
+           ioff = ioff + dffts%tg_nnr
 
-!         ENDDO
-!         !
-!         CALL  invfft ('Wave', tg_psic, dffts)
+        ENDDO
+        !
+        CALL  invfft ('Wave', tg_psic, dffts)
         !
      ELSE
         !
@@ -96,14 +96,13 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
      !   back to reciprocal space
      !
      IF ( dffts%have_task_groups ) THEN
-!         !
-! !$omp parallel do
-!         DO j = 1, dffts%nr1x*dffts%nr2x*dffts%tg_npp( me_bgrp + 1 )
-!            tg_psic (j) = tg_psic (j) * tg_v(j)
-!         ENDDO
-! !$omp end parallel do
-!         !
-!         CALL fwfft ('Wave',  tg_psic, dffts)
+        !
+        !$cuf kernel do(1) <<<*,*>>>
+        DO j = 1, dffts%nr1x*dffts%nr2x*dffts%tg_npp( me_bgrp + 1 )
+           tg_psic (j) = tg_psic (j) * tg_v(j)
+        ENDDO
+        !
+        CALL fwfft ('Wave',  tg_psic, dffts)
         !
      ELSE
         !
@@ -120,22 +119,21 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
      !
      IF ( dffts%have_task_groups ) THEN
         !
-!         ioff   = 0
-!         !
-!         DO idx = 1, dffts%nogrp
-!            !
-!            IF( idx + ibnd - 1 <= m ) THEN
-! !$omp parallel do
-!               DO j = 1, n
-!                  hpsi (j, ibnd+idx-1) = hpsi (j, ibnd+idx-1) + tg_psic( nls(igk(j)) + ioff )
-!               ENDDO
-! !$omp end parallel do
-!            ENDIF
-!            !
-!            ioff = ioff + dffts%nr3x * dffts%nsw( me_bgrp + 1 )
-!            !
-!         ENDDO
+        ioff   = 0
         !
+        DO idx = 1, dffts%nogrp
+           !
+           IF( idx + ibnd - 1 <= m ) THEN
+              !$cuf kernel do(1) <<<*,*>>>
+              DO j = 1, n
+                 hpsi_d (j, ibnd+idx-1) = hpsi_d (j, ibnd+idx-1) + tg_psic( nls_d(igk_d(j)) + ioff )
+              ENDDO
+           ENDIF
+           !
+           ioff = ioff + dffts%nr3x * dffts%nsw( me_bgrp + 1 )
+           !
+        ENDDO
+     !
      ELSE
         !$cuf kernel do <<<*,*>>>
         DO j = 1, n
@@ -147,8 +145,8 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
   !
   IF( dffts%have_task_groups ) THEN
      !
-    !  DEALLOCATE( tg_psic )
-    !  DEALLOCATE( tg_v )
+     DEALLOCATE( tg_psic )
+     DEALLOCATE( tg_v )
      !
   ENDIF
   dffts%have_task_groups = use_tg

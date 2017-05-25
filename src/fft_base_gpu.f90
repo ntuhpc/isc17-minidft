@@ -49,7 +49,7 @@
         PUBLIC :: cgather_sym, cgather_smooth, cgather_custom
         PUBLIC :: cscatter_sym, cscatter_smooth, cscatter_custom
         PUBLIC :: gather_smooth, scatter_smooth
-        PUBLIC :: tg_gather
+        PUBLIC :: tg_gather_gpu
 
 
 
@@ -1521,7 +1521,7 @@ END SUBROUTINE scatter_smooth
 
 
 !
-SUBROUTINE tg_gather( dffts, v, tg_v )
+SUBROUTINE tg_gather_gpu( dffts, v, tg_v )
    !
    USE parallel_include
    !
@@ -1534,8 +1534,8 @@ SUBROUTINE tg_gather( dffts, v, tg_v )
 
    TYPE(fft_dlay_descriptor), INTENT(in) :: dffts
 
-   REAL(DP) :: v(:)
-   REAL(DP) :: tg_v(:)
+   REAL(DP), DEVICE :: v(:)
+   REAL(DP), DEVICE :: tg_v(:)
 
    INTEGER :: nsiz, i, ierr, nsiz_tg
    INTEGER :: recv_cnt( dffts%nogrp ), recv_displ( dffts%nogrp )
@@ -1576,7 +1576,7 @@ SUBROUTINE tg_gather( dffts, v, tg_v )
       CALL errore( ' tg_gather ', ' MPI_Allgatherv ', abs( ierr ) )
 
 
-END SUBROUTINE tg_gather
+END SUBROUTINE tg_gather_gpu
 
 !=----------------------------------------------------------------------=!
    END MODULE fft_base_gpu
