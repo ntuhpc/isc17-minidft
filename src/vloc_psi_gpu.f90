@@ -6,8 +6,8 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
   !
   USE parallel_include
   USE kinds,   ONLY : DP
-  USE gvecs, ONLY : nls_d
-  USE wvfct,   ONLY : igk_d, igk
+  USE gvecs, ONLY : nls_d, nls, ngms
+  USE wvfct,   ONLY : igk_d, igk, npwx
   USE mp_global,     ONLY : me_pool, me_bgrp
   USE fft_base,      ONLY : dffts, dfftp
   USE fft_base_gpu,  ONLY : tg_gather_gpu
@@ -30,7 +30,11 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
   INTEGER :: v_siz, idx, ioff
   ! GPU workspace
   COMPLEX(DP), ALLOCATABLE, DEVICE :: psic_d(:)
-  !
+  ! Allocate GPU memory
+  ALLOCATE( nls_d(ngms) )
+  ALLOCATE( igk_d(npwx) )
+  nls_d = nls
+  igk_d = igk
   !
   ! The following is dirty trick to prevent usage of task groups if
   ! the number of bands is smaller than the number of task groups 
@@ -56,7 +60,6 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
   !
   ! the local potential V_Loc psi. First bring psi to real space
   !
-  igk_d = igk
   DO ibnd = 1, m, incr
      !
      IF ( dffts%have_task_groups ) THEN
@@ -143,6 +146,9 @@ SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
      ENDIF
      !
   ENDDO
+  ! deallocate GPU memory
+  DEALLOCATE( nls_d )
+  DEALLOCATE( igk_d )
   !
   IF( dffts%have_task_groups ) THEN
      !

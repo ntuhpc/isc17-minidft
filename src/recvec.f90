@@ -189,9 +189,6 @@
        !  allocate arrays 
        !
        ALLOCATE( nls (ngms) )
-#if defined(__CUDA) && defined(__CUFFT)
-       ALLOCATE( nls_d (ngms) )
-#endif
        ALLOCATE( nlsm(ngms) )
        !
        RETURN 

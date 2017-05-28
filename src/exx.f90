@@ -626,11 +626,7 @@ subroutine exxinit()
     USE io_global,            ONLY : stdout
     USE buffers,              ONLY : get_buffer
     USE gvecs,              ONLY : nls, nlsm, doublegrid
-#if defined(__CUDA) && defined(__CUFFT)
-    USE wvfct,                ONLY : nbnd, npwx, npw, igk, igk_d, wg, et
-#else
     USE wvfct,                ONLY : nbnd, npwx, npw, igk, wg, et
-#endif
     USE control_flags,        ONLY : gamma_only
     USE klist,                ONLY : wk, ngk, nks, nkstot
     USE symm_base,            ONLY : nsym, s, sr, ftau
@@ -828,10 +824,6 @@ write(stdout,*) "exxinit, yukawa set to: ", yukawa
        deallocate(temppsic_all, psic_all)
 #endif
 
-#if defined(__CUDA) && defined(_CUFFT)
-    igk_d = igk
-#endif
-
     call stop_clock ('exxinit')  
 
 end subroutine exxinit
@@ -859,11 +851,7 @@ SUBROUTINE vexx(lda, n, m, psi, hpsi)
     USE symm_base, ONLY : nsym, s
     USE gvect,     ONLY : ngm
     USE gvecs,   ONLY : nls, nlsm, doublegrid
-#if defined(__CUDA) && defined(__CUFFT)
-    USE wvfct,     ONLY : nbnd, npwx, npw, igk, igk_d, current_k
-#else
     USE wvfct,     ONLY : nbnd, npwx, npw, igk, current_k
-#endif
     USE control_flags, ONLY : gamma_only
     USE klist,     ONLY : xk, nks, nkstot
     USE lsda_mod,  ONLY : lsda, current_spin, isk

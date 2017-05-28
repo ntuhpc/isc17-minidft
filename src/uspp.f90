@@ -90,9 +90,6 @@ MODULE uspp
   PUBLIC :: okvan, nlcc_any
   PUBLIC :: qq_so, dvan_so, deeq_nc 
   PUBLIC :: dbeta
-#if defined(__CUDA) && defined(__CUBLAS)
-  PUBLIC :: vkb_d
-#endif
   INTEGER, PARAMETER :: &
        nlx  = (lmaxx+1)**2, &! maximum number of combined angular momentum
        mx   = 2*lqmax-1      ! maximum magnetic angular momentum of Q
@@ -118,10 +115,6 @@ MODULE uspp
   !
   COMPLEX(DP), ALLOCATABLE, TARGET :: &
        vkb(:,:)                ! all beta functions in reciprocal space
-#if defined(__CUDA) && defined(__CUBLAS)
-  COMPLEX(DP), ALLOCATABLE, DEVICE, TARGET :: &
-       vkb_d(:,:)
-#endif
   REAL(DP), ALLOCATABLE :: &
        becsum(:,:,:)           ! \sum_i f(i) <psi(i)|beta_l><beta_m|psi(i)>
   REAL(DP), ALLOCATABLE :: &
@@ -307,9 +300,6 @@ CONTAINS
     IF( ALLOCATED( nhtoj ) )   DEALLOCATE( nhtoj )
     IF( ALLOCATED( ijtoh ) )   DEALLOCATE( ijtoh )
     IF( ALLOCATED( vkb ) )     DEALLOCATE( vkb )
-#if defined(__CUDA) && defined(__CUBLAS)
-    IF( ALLOCATED( vkb_d) )    DEALLOCATE( vkb_d )
-#endif
     IF( ALLOCATED( becsum ) )  DEALLOCATE( becsum )
     IF( ALLOCATED( qq ) )      DEALLOCATE( qq )
     IF( ALLOCATED( dvan ) )    DEALLOCATE( dvan )

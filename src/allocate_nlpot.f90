@@ -28,20 +28,11 @@ subroutine allocate_nlpot
   USE klist,            ONLY : xk, wk, ngk, nks, qnorm
   USE lsda_mod,         ONLY : nspin
   USE scf,              ONLY : rho
-#if defined(__CUDA) && defined(__CUFFT)
-  USE wvfct,            ONLY : npwx, npw, igk, igk_d, g2kin, g2kin_d, ecutwfc
-#else
   USE wvfct,            ONLY : npwx, npw, igk, g2kin, ecutwfc
-#endif
   USE us,               ONLY : qrad, tab, tab_d2y, tab_at, dq, nqx, &
                                nqxq, spline_ps
-#if defined(__CUDA) && defined(__CUBLAS)
-  USE uspp,             ONLY : indv, nhtol, nhtolm, ijtoh, qq, dvan, deeq, vkb, vkb_d, &
-                               nkb, nkbus, nhtoj, becsum, qq_so, dvan_so, deeq_nc
-#else
   USE uspp,             ONLY : indv, nhtol, nhtolm, ijtoh, qq, dvan, deeq, vkb, &
                                nkb, nkbus, nhtoj, becsum, qq_so, dvan_so, deeq_nc
-#endif
   USE uspp_param,       ONLY : upf, lmaxq, lmaxkb, nh, nhm, nbetam
   USE spin_orb,         ONLY : lspinorb, fcoef
   USE control_flags,    ONLY : program_name
@@ -63,9 +54,6 @@ subroutine allocate_nlpot
   !   igk relates the index of PW k+G to index in the list of G vector
   !
   allocate (igk( npwx ), g2kin ( npwx ) )
-#if defined(__CUDA) && defined(__CUFFT)
-  ALLOCATE( igk_d( npwx ), g2kin_d(npwx) )
-#endif
   !
   ! Note: computation of the number of beta functions for
   ! each atomic type and the maximum number of beta functions
@@ -94,10 +82,7 @@ subroutine allocate_nlpot
   lmaxq = 2*lmaxkb+1
   !
   if (lmaxq > 0) allocate (qrad( nqxq, nbetam*(nbetam+1)/2, lmaxq, nsp))    
-  if (nkb > 0) allocate (vkb( npwx,  nkb))   
-#if defined(__CUDA) && defined(__CUBLAS)
-  if (nkb > 0) allocate (vkb_d( npwx, nkb))
-#endif 
+  if (nkb > 0) allocate (vkb( npwx,  nkb))    
   allocate (becsum( nhm * (nhm + 1)/2, nat, nspin))    
   !
   ! Calculate dimensions for array tab (including a possible factor
