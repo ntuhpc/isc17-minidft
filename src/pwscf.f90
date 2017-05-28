@@ -42,7 +42,7 @@ PROGRAM pwscf
   !
   !
   CALL mp_startup ( )
-#ifdef __CUDA
+#if defined(__CUDA) && (defined(__CUBLAS) || defined(__CUFFT))
   CALL cuda_startup ( )
 #endif
   ! reset IO nodes

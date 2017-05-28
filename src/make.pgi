@@ -1,4 +1,6 @@
-# math libraries
+# Linking libraries
+#
+# Properly set MKLROOT and MAGMAROOT
 MKLROOT   = /opt/intel/mkl
 MAGMAROOT = /home/public/minidft/thirdparty/magma-pgi
 
@@ -6,8 +8,18 @@ MATH_LIBS =  ${MKLROOT}/lib/intel64/libmkl_scalapack_lp64.a -Wl,--start-group ${
 
 LIBS = ${MAGMAROOT}/lib/libmagma.a -lcufft -lcublas $(MATH_LIBS) -lstdc++
 
+# Optimization flags
+#
+# __CUDA: enable CUDA optimizations, used together with other related flags
+# __CUBLAS: enable cuBLAS
+# __PINNED_MEM: use pinned memory
+# __CUFFT: enable cuFFT
+# __MAGMA: enable MAGMA
+# __ZHEGVD: use magma_zhegvd in diagnolization
+# __NONBLOCKING_FFT: use async MPI calls in fft_scatter
 DFLAGS += -D__CUDA -D__CUBLAS -D__PINNED_MEM -D__CUFFT -D__MAGMA -D__ZHEGVD -D__NONBLOCKING_FFT
 
+# Compilers and flags
 CC = mpicc
 CFLAGS = -fast -I./ -I${MKLROOT}/include
 
