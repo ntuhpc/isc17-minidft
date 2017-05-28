@@ -17,7 +17,11 @@ LIBS = ${MAGMAROOT}/lib/libmagma.a -lcufft -lcublas $(MATH_LIBS) -lstdc++
 # __MAGMA: enable MAGMA
 # __ZHEGVD: use magma_zhegvd in diagnolization
 # __NONBLOCKING_FFT: use async MPI calls in fft_scatter
-DFLAGS += -D__CUDA -D__CUBLAS -D__PINNED_MEM -D__CUFFT -D__MAGMA -D__ZHEGVD -D__NONBLOCKING_FFT
+DFLAGS += -D__CUDA \
+          -D__PINNED_MEM \
+          -D__MAGMA \
+          -D__ZHEGVD \
+          -D__NONBLOCKING_FFT
 
 # Compilers and flags
 CC = mpicc

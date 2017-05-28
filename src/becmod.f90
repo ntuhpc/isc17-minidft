@@ -46,11 +46,7 @@ MODULE becmod
   !
   INTERFACE calbec
      !
-#if defined(__CUDA) && defined(__CUBLAS)
-     MODULE PROCEDURE calbec_k_gpu, calbec_k, calbec_bec_type
-#else
      MODULE PROCEDURE calbec_k, calbec_bec_type
-#endif
      !
   END INTERFACE
 
@@ -125,50 +121,6 @@ CONTAINS
     RETURN
     !
   END SUBROUTINE calbec_k
-#if defined(__CUDA) && defined(__CUBLAS)
-  !
-  !-----------------------------------------------------------------------
-  SUBROUTINE calbec_k_gpu ( npw, beta, psi, betapsi, ibnd )
-    !-----------------------------------------------------------------------
-    !
-    ! ... matrix times matrix with summation index (k=1,npw) running on
-    ! ... G-vectors or PWs : betapsi(i,j) = \sum_k beta^*(i,k) psi(k,j)
-    !
-    USE mp_global, ONLY : intra_bgrp_comm
-    USE mp,        ONLY : mp_sum
-    USE cublas
-    USE cudafor
-
-    IMPLICIT NONE
-    COMPLEX (DP), INTENT (in), DEVICE :: beta(:,:), psi(:,:)
-    COMPLEX (DP), INTENT (out), DEVICE :: betapsi(:)
-    INTEGER, INTENT (in) :: npw
-    INTEGER, INTENT (in) :: ibnd
-    !
-    INTEGER :: nkb, npwx, m
-    !
-    nkb = size (beta, 2)
-    IF ( nkb == 0 ) RETURN
-    !
-    CALL start_clock( 'calbec' )
-    npwx= size (beta, 1)
-    IF ( npwx /= size (psi, 1) ) CALL errore ('calbec', 'size mismatch', 1)
-    IF ( npwx < npw ) CALL errore ('calbec', 'size mismatch', 2)
-    IF ( nkb /= size (betapsi,1) ) &
-      CALL errore ('calbec', 'size mismatch', 3)
-
-       ! this calls GPU
-       CALL cublasZGEMV( 'C', npw, nkb, (1.0_DP,0.0_DP), beta, npwx, psi(:,ibnd), 1, &
-                   (0.0_DP, 0.0_DP), betapsi, 1 )
-
-    CALL mp_sum( betapsi( : ), intra_bgrp_comm )
-    !
-    CALL stop_clock( 'calbec' )
-    !
-    RETURN
-    !
-  END SUBROUTINE calbec_k_gpu
-#endif
   !
   !-----------------------------------------------------------------------
   SUBROUTINE allocate_bec_type ( nkb, bec, comm )

@@ -57,9 +57,7 @@ SUBROUTINE cdiaghg_gpu( n, m, h, s, ldh, e, v )
   !
   CALL start_clock( 'cdiaghg' )
   !
-#if defined(__CUDA_DEBUG)
   WRITE(*,*) "[CDIAGHG] Compute cdiaghg, n = ", n
-#endif
   !
   ! ... only the first processor diagonalizes the matrix
   !
