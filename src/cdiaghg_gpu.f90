@@ -108,7 +108,8 @@ SUBROUTINE cdiaghg_gpu( n, m, h, s, ldh, e, v )
         CALL magmaf_zhegvd_m(num_of_gpu, 1, 'V', 'U', n, v, ldh, s, ldh, e, &
                       work, lwork, rwork, lrwork, iwork, liwork, info)
 #elif defined(__INTEL)
-        CALL magmaf_zhegvd( 1, 'V', 'U', n, v, ldh, s, ldh, e, &
+        CALL cudaGetDeviceCount( num_of_gpu )
+        CALL magmaf_zhegvd_m(num_of_gpu, 1, 'V', 'U', n, v, ldh, s, ldh, e, &
                       work, lwork, rwork, lrwork, iwork, liwork, info)
 #endif
         !

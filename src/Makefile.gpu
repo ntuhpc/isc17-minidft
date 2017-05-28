@@ -3,6 +3,7 @@ CFLAGS += $(DFLAGS)
 FFLAGS += $(DFLAGS)
 
 OBJECTS += \
+        gpu_aux.o \
 	kind.o \
 	constants.o \
 	radial_grids.o \

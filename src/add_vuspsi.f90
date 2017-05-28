@@ -1,3 +1,6 @@
+#if defined(__CUDA) && defined(__CUBLAS)
+#define ZGEMM cublas_ZGEMM
+#endif
 !
 ! Copyright (C) 2001-2003 PWSCF group
 ! This file is distributed under the terms of the
@@ -100,6 +103,7 @@ SUBROUTINE add_vuspsi( lda, n, m, psi, hpsi )
           !
        END DO
        !
+       ! improved GEMM
        IF ( m == 1 ) THEN
           !
           CALL ZGEMV( 'N', n, nkb, ( 1.D0, 0.D0 ), vkb, lda, ps, 1, &

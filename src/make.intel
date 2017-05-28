@@ -15,6 +15,7 @@ LIBS = ${MAGMAROOT}/lib/libmagma.a -lcudart -lcublas -lcusparse $(MATH_LIBS) -ls
 DFLAGS += -D__CUDA \
           -D__MAGMA \
           -D__ZHEGVD \
+          -D__CUBLAS \
           -D__NONBLOCKING_FFT
 
 CC = mpiicc
