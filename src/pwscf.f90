@@ -20,7 +20,7 @@ PROGRAM pwscf
   USE check_stop,       ONLY : check_stop_init
   USE mp_global,        ONLY : mp_startup, mp_global_end, intra_image_comm
   USE mp_global,        ONLY : nimage, me_image, root_image, my_image_id
-#ifdef __CUDA
+#if defined(__CUDA) && (defined(__CUBLAS) || defined(__CUFFT))
   USE cuda_global,      ONLY : cuda_startup
 #endif
   USE io_files,           ONLY : tmp_dir

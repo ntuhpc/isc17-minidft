@@ -37,7 +37,7 @@ SUBROUTINE h_psi( lda, n, m, psi, hpsi )
   INTEGER, INTENT(IN)     :: lda, n, m
   COMPLEX(DP), INTENT(IN)  :: psi(lda*npol,m) 
   COMPLEX(DP), INTENT(OUT) :: hpsi(lda*npol,m)
-#if defined(__CUDA) && defined(__CUFFT)
+#if defined(__CUDA) && defined(__CUFFT) && defined(__PGI)
   COMPLEX(DP), ALLOCATABLE, DEVICE :: psi_d(:,:), hpsi_d(:,:)
   REAL(DP), ALLOCATABLE, DEVICE :: vrs_d(:,:)
 #endif
@@ -59,7 +59,7 @@ SUBROUTINE h_psi( lda, n, m, psi, hpsi )
   !
   CALL start_clock( 'h_psi:vloc' )
   !
-#if defined(__CUDA) && defined(__CUFFT)
+#if defined(__CUDA) && defined(__CUFFT) && defined(__PGI)
      ALLOCATE( psi_d(lda*npol,m), hpsi_d(lda*npol,m) )
      ALLOCATE( vrs_d(dfftp%nnr, nspin) )
      psi_d = psi

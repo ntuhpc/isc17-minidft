@@ -155,7 +155,7 @@
      ! nlm = as above, for G< (used only with gamma tricks)
 
      INTEGER, ALLOCATABLE :: nls(:), nlsm(:)
-#if defined(__CUDA) && defined(__CUFFT)
+#if defined(__CUDA) && defined(__CUFFT) && defined(__PGI)
      INTEGER, ALLOCATABLE, DEVICE :: nls_d(:)
 #endif
 
@@ -197,7 +197,7 @@
 
      SUBROUTINE deallocate_gvecs()
        IF( ALLOCATED( nls ) ) DEALLOCATE( nls )
-#if defined(__CUDA) && defined(__CUFFT)
+#if defined(__CUDA) && defined(__CUFFT) && defined(__PGI)
        IF( ALLOCATED( nls_d ) ) DEALLOCATE( nls_d )
 #endif
        IF( ALLOCATED( nlsm ) ) DEALLOCATE( nlsm )

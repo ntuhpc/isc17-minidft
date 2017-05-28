@@ -1,4 +1,4 @@
-#if defined(__CUDA) && defined(__CUFFT)
+#if defined(__CUDA) && defined(__CUFFT) && defined(__PGI)
 !-----------------------------------------------------------------------
 SUBROUTINE vloc_psi_k_gpu(lda, n, m, psi_d, v, hpsi_d)
   !-----------------------------------------------------------------------

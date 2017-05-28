@@ -40,7 +40,7 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   USE descriptors,      ONLY : la_descriptor, descla_init , descla_local_dims
   USE parallel_toolkit, ONLY : zsqmred, zsqmher
   USE mp,               ONLY : mp_bcast, mp_root_sum, mp_sum, mp_barrier
-#ifdef __CUDA
+#if defined(__CUDA) && defined(__PGI)
   USE cudafor
 #endif
   !
@@ -85,7 +85,7 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   INTEGER :: ierr
   REAL(DP), ALLOCATABLE :: ew(:)
     ! eigenvalues of the reduced hamiltonian
-#if defined(__CUDA) && defined(__PINNED_MEM)
+#if defined(__CUDA) && defined(__PINNED_MEM) && defined(__PGI)
   COMPLEX(DP), ALLOCATABLE, PINNED :: hl(:,:), sl(:,:), vl(:,:)
     ! Hamiltonian on the reduced basis
     ! S matrix on the reduced basis
@@ -333,7 +333,6 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
      !
 #if defined(__CUDA) && defined(__MAGMA)
      CALL cdiaghg_gpu( nbase, nvec, hl, sl, nvecx, ew, vl )
-     WRITE(*,*) "Finish cdiaghg_gpu"
 #else
      CALL pcdiaghg( nbase, hl, sl, nx, ew, vl, desc )
 #endif
@@ -545,7 +544,6 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
      ! ... diagonalize the reduced hamiltonian
      !
      CALL cdiaghg_gpu( nbase, nvec, hl, sl, nvecx, ew, vl )
-     WRITE(*,*) "Finish cdiaghg_gpu"
      !
      ! ... test for convergence
      !
@@ -875,6 +873,7 @@ SUBROUTINE pcegterg( npw, npwx, nvec, nvecx, npol, evc, ethr, &
   RETURN
   !
   !
+  ! below are all subroutines only included when MAGMA is not used
 #if !defined(__MAGMA) || !defined(__CUDA)
 CONTAINS
   !

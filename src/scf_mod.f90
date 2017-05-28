@@ -71,7 +71,7 @@ MODULE scf
        vrs(:,:),       &! the total pot. in real space (smooth grid)
        rho_core(:),    &! the core charge in real space
        kedtau(:,:)      ! position dependent kinetic energy enhancement factor
-#if defined(__CUDA) && defined(__CUFFT)
+#if defined(__CUDA) && defined(__CUFFT) && defined(__PGI)
   REAL(DP), ALLOCATABLE, DEVICE :: &
        vrs_d(:,:)
 #endif

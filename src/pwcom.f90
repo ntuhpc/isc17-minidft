@@ -196,7 +196,7 @@ MODULE wvfct
        current_k          ! the index of k-point under consideration
   INTEGER, ALLOCATABLE, TARGET :: &
        igk(:)             ! index of G corresponding to a given index of k+G
-#if defined(__CUDA) && defined(__CUFFT)
+#if defined(__CUDA) && defined(__CUFFT) && defined(__PGI)
   INTEGER, ALLOCATABLE, DEVICE, TARGET :: &
        igk_d(:)
 #endif
@@ -209,7 +209,7 @@ MODULE wvfct
        et(:,:),          &! eigenvalues of the hamiltonian
        wg(:,:),          &! the weight of each k point and band
        g2kin(:)           ! kinetic energy
-#if defined(__CUDA) && defined(__CUFFT)
+#if defined(__CUDA) && defined(__CUFFT) && defined(__PGI)
   REAL(DP), ALLOCATABLE, DEVICE :: &
        g2kin_d(:)
 #endif

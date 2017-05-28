@@ -21,7 +21,7 @@ SUBROUTINE clean_pw( lflag )
   USE ions_base,            ONLY : deallocate_ions_base
   USE gvect,                ONLY : g, gg, gl, nl, nlm, igtongl, mill, &
                                    eigts1, eigts2, eigts3
-#if defined(__CUDA) && defined(__CUFFT)
+#if defined(__CUDA) && defined(__CUFFT) && defined(__PGI)
   USE gvecs,                ONLY : nls, nlsm, nls_d
 #else
   USE gvecs,                ONLY : nls, nlsm
@@ -31,7 +31,7 @@ SUBROUTINE clean_pw( lflag )
   USE klist,                ONLY : ngk
   USE gvect,                ONLY : ig_l2g
   USE vlocal,               ONLY : strf, vloc
-#if defined(__CUDA) && defined(__CUFFT)
+#if defined(__CUDA) && defined(__CUFFT) && defined(__PGI)
   USE wvfct,                ONLY : igk, igk_d, g2kin, g2kin_d, et, wg, btype
 #else
   USE wvfct,                ONLY : igk, g2kin, et, wg, btype
@@ -115,7 +115,7 @@ SUBROUTINE clean_pw( lflag )
     IF ( ALLOCATED( tab_d2y) )     DEALLOCATE( tab_d2y )
   endif
   IF ( ALLOCATED( nls ) )     DEALLOCATE( nls )
-#if defined(__CUDA) && defined(__CUFFT)
+#if defined(__CUDA) && defined(__CUFFT) && defined(__PGI)
   IF ( ALLOCATED( nls_d ) )  DEALLOCATE( nls_d )
 #endif
   IF ( ALLOCATED( nlsm ) )   DEALLOCATE( nlsm )
@@ -132,7 +132,7 @@ SUBROUTINE clean_pw( lflag )
   !
   IF ( ALLOCATED( ngk ) )        DEALLOCATE( ngk )
   IF ( ALLOCATED( igk ) )        DEALLOCATE( igk )
-#if defined(__CUDA) && defined(__CUFFT)
+#if defined(__CUDA) && defined(__CUFFT) && defined(__PGI)
   IF ( ALLOCATED( igk_d ) )      DEALLOCATE( igk_d )
 #endif
   IF ( ALLOCATED( g2kin ) )      DEALLOCATE( g2kin )
