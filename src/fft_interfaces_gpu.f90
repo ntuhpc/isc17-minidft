@@ -1,3 +1,4 @@
+#if defined(__CUDA) && defined(__CUFFT) && defined(__PGI)
 !
 ! Copyright (C) 2010 Quantum ESPRESSO group
 ! This file is distributed under the terms of the
@@ -262,3 +263,4 @@
 
       return
       end subroutine fwfft_x_gpu
+#endif

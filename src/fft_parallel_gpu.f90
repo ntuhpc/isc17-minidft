@@ -1,3 +1,4 @@
+#if defined(__CUDA) && defined(__CUFFT) && defined(__PGI)
 !
 ! Copyright (C) 2001-2009 Quantum ESPRESSO group
 ! This file is distributed under the terms of the
@@ -332,3 +333,4 @@ CONTAINS
 END SUBROUTINE tg_cft3s_gpu
 !
 END MODULE fft_parallel_gpu
+#endif

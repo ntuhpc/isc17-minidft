@@ -1,3 +1,4 @@
+#if defined(__CUDA) && defined(__PGI)
 MODULE cuda_global
 
     USE mp_global, ONLY : mpime
@@ -13,3 +14,4 @@ MODULE cuda_global
         END SUBROUTINE cuda_startup
 
 END MODULE cuda_global
+#endif

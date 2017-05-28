@@ -1,3 +1,4 @@
+#if defined(__CUDA) && defined(__CUFFT) && defined(__PGI)
 !
 ! Copyright (C) 2001-2012 Quantum ESPRESSO group
 ! This file is distributed under the terms of the
@@ -575,3 +576,4 @@ end function allowed
 !=----------------------------------------------------------------------=!
    END MODULE fft_scalar_gpu
 !=----------------------------------------------------------------------=!
+#endif

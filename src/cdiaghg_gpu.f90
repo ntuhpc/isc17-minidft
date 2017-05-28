@@ -22,7 +22,9 @@ SUBROUTINE cdiaghg_gpu( n, m, h, s, ldh, e, v )
   USE kinds,            ONLY : DP
   USE mp,               ONLY : mp_bcast, mp_sum, mp_barrier, mp_max
   USE mp_global,         ONLY : me_bgrp, root_bgrp, intra_bgrp_comm
+#if defined(__CUDA) && defined(__MAGMA) && defined(__PGI)
   USE cudafor
+#endif
   !
   IMPLICIT NONE
   !
@@ -57,11 +59,11 @@ SUBROUTINE cdiaghg_gpu( n, m, h, s, ldh, e, v )
   !
   CALL start_clock( 'cdiaghg' )
   !
-  WRITE(*,*) "[CDIAGHG] Compute cdiaghg, n = ", n
   !
   ! ... only the first processor diagonalizes the matrix
   !
   IF ( me_bgrp == root_bgrp ) THEN
+     WRITE(*,*) "[CDIAGHG] Compute cdiaghg, n = ", n
      CALL magmaf_init()
      !
      ! ... save the diagonal of input S (it will be overwritten)
@@ -101,9 +103,14 @@ SUBROUTINE cdiaghg_gpu( n, m, h, s, ldh, e, v )
         ALLOCATE( iwork( liwork ) )
         ALLOCATE( rwork( lrwork ) )
         !
+#if defined(__PGI)
         cuda_err = cudaGetDeviceCount( num_of_gpu )
         CALL magmaf_zhegvd_m(num_of_gpu, 1, 'V', 'U', n, v, ldh, s, ldh, e, &
                       work, lwork, rwork, lrwork, iwork, liwork, info)
+#elif defined(__INTEL)
+        CALL magmaf_zhegvd( 1, 'V', 'U', n, v, ldh, s, ldh, e, &
+                      work, lwork, rwork, lrwork, iwork, liwork, info)
+#endif
         !
 #else
         !
@@ -180,6 +187,7 @@ SUBROUTINE cdiaghg_gpu( n, m, h, s, ldh, e, v )
      !
      DEALLOCATE( sdiag )
      CALL magmaf_finalize()
+     WRITE(*,*) "[CDIAGHG] Finish cdiaghg, n = ", n
      !
   END IF
   !

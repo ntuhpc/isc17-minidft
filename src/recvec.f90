@@ -138,7 +138,6 @@
    MODULE gvecs
 !=----------------------------------------------------------------------------=!
      USE kinds, ONLY: DP
-     USE cudafor
 
      IMPLICIT NONE
      SAVE

@@ -1,3 +1,4 @@
+#if defined(__CUDA) && defined(__CUFFT) && defined(__PGI)
 !
 ! Copyright (C) 2006-2010 Quantum ESPRESSO group
 ! This file is distributed under the terms of the
@@ -1580,4 +1581,5 @@ END SUBROUTINE tg_gather_gpu
 
 !=----------------------------------------------------------------------=!
    END MODULE fft_base_gpu
+#endif
 !=----------------------------------------------------------------------=!

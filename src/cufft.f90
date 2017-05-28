@@ -1,3 +1,4 @@
+#if defined(__CUDA) && defined(__CUFFT) && defined(__PGI)
 !-------------------------------------------
 ! The interface between Fortran 90 and CUFFT
 !-------------------------------------------
@@ -55,3 +56,4 @@ MODULE cufft
   END INTERFACE cufftDestroy
 
 END MODULE cufft
+#endif
