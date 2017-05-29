@@ -116,7 +116,7 @@ SUBROUTINE fft_scatter ( dfft, f_in, nr3x, nxx_, f_aux, ncp_, npp_, isgn, use_tg
   LOGICAL :: tsts(dfft%nproc), tstr(dfft%nproc)
   INTEGER :: istat( MPI_STATUS_SIZE )
 
-  INTEGER :: me_p, nppx, mc, j, npp, nnp, ii, it, ip, ioff
+  INTEGER :: me_p, nppx, mc, j, npp, nnp, ii, it, ioff
 
 #if defined __HPM
      !       CALL f_hpmstart( 10, 'scatter' )
