@@ -64,6 +64,8 @@ SUBROUTINE add_vuspsi( lda, n, m, psi, hpsi )
        !
        ! OPTIMIZATION
        USE mp_global, ONLY : intra_bgrp_comm
+       USE mp,        ONLY : mp_sum
+       USE wvfct,     ONLY : npwx
        !
        IMPLICIT NONE
        COMPLEX(DP), ALLOCATABLE :: ps (:,:)
@@ -71,7 +73,6 @@ SUBROUTINE add_vuspsi( lda, n, m, psi, hpsi )
        !
        ! OPTIMIZATION
        COMPLEX(DP), ALLOCATABLE :: betapsi(:,:)
-       ALLOCATE( betapsi(SIZE(vkb,1), SIZE(psi,2)) )
        !
        IF ( nkb == 0 ) RETURN
        !
@@ -83,18 +84,20 @@ SUBROUTINE add_vuspsi( lda, n, m, psi, hpsi )
        ijkb0 = 0
        !
        ! OPTIMIZATION
-       ZGEMM('C', 'C', SIZE(vkb,1), SIZE(psi,2), SIZE(vkb,2), (1.0_DP,0.0_DP), &
-             vkb, SIZE(vkb,1), psi, SIZE(psi,1), (1.0_DP,0.0_DP), betapsi, SIZE(betapsi,1))
-       mp_sum(betapsi(:,:), intra_bgrp_comm)
+       ALLOCATE( betapsi(n, m) )
+       betapsi(:,:) = (0.0_DP,0.0_DP)
+       CALL ZGEMM('C', 'N', nkb, m, n, (1.0_DP,0.0_DP), vkb, npwx, &
+                  psi, lda, (0.0_DP,0.0_DP), betapsi, n)
        !
        DO ibnd = 1, m
 
+          CALL mp_sum(betapsi(:,ibnd), intra_bgrp_comm)
           ! JRD: Compute becp for just this ibnd here
           !
           ! this is replaced by OPTIMIZATION above
           !
           !CALL calbec ( n, vkb, psi, becp, ibnd )
-          !write(*,*) 'Computing becp', ibnd
+          write(*,*) 'Computing becp', ibnd
 
           ijkb0 = 0
 
@@ -132,6 +135,7 @@ SUBROUTINE add_vuspsi( lda, n, m, psi, hpsi )
        ENDIF
        !
        DEALLOCATE (ps)
+       DEALLOCATE (betapsi)
        !
        RETURN
        !
