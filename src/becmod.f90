@@ -1,6 +1,6 @@
-#if defined(__CUDA) && defined(__CUBLAS)
-#define ZGEMV cublas_ZGEMV
-#endif
+!#if defined(__CUDA) && defined(__CUBLAS)
+!#define ZGEMV cublas_ZGEMV
+!#endif
 !
 ! Copyright (C) 2001-2007 PWSCF group
 ! This file is distributed under the terms of the
