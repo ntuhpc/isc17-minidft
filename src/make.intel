@@ -1,14 +1,14 @@
 # math libraries
 MKLROOT   = /opt/intel/mkl
-MAGMAROOT = /home/public/minidft/thirdparty/magma-intel
+MAGMAROOT = /home/public/minidft/thirdparty/magma-intel-s
 
 MATH_LIBS = ${MKLROOT}/lib/intel64/libmkl_scalapack_lp64.a \
             -Wl,--start-group \
               ${MKLROOT}/lib/intel64/libmkl_intel_lp64.a \
-	      ${MKLROOT}/lib/intel64/libmkl_intel_thread.a \
+	      ${MKLROOT}/lib/intel64/libmkl_sequential.a \
               ${MKLROOT}/lib/intel64/libmkl_core.a \
               ${MKLROOT}/lib/intel64/libmkl_blacs_intelmpi_lp64.a \
-	    -Wl,--end-group -liomp5 -lpthread -lm -ldl
+	    -Wl,--end-group -lpthread -lm -ldl
 
 LIBS = ${MAGMAROOT}/lib/libmagma.a -lcudart -lcublas -lcusparse $(MATH_LIBS) -lstdc++
 
@@ -22,7 +22,7 @@ CC = mpiicc
 CFLAGS = -O3 -I./ -I${MKLROOT}/include
 
 FC = mpiifort
-FFLAGS = -O3 -fpp -I./ -I${MKLROOT}/include -qopenmp
+FFLAGS = -O3 -fpp -I./ -I${MKLROOT}/include #-qopenmp
 
 LD = mpiifort
-LDFLAGS = -qopenmp
+LDFLAGS = #-qopenmp
