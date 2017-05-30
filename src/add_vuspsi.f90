@@ -62,9 +62,16 @@ SUBROUTINE add_vuspsi( lda, n, m, psi, hpsi )
      SUBROUTINE add_vuspsi_k()
        !-----------------------------------------------------------------------
        !
+       ! OPTIMIZATION
+       USE mp_global, ONLY : intra_bgrp_comm
+       !
        IMPLICIT NONE
        COMPLEX(DP), ALLOCATABLE :: ps (:,:)
        INTEGER :: ierr
+       !
+       ! OPTIMIZATION
+       COMPLEX(DP), ALLOCATABLE :: betapsi(:,:)
+       ALLOCATE( betapsi(SIZE(vkb,1), SIZE(psi,2)) )
        !
        IF ( nkb == 0 ) RETURN
        !
@@ -75,10 +82,18 @@ SUBROUTINE add_vuspsi( lda, n, m, psi, hpsi )
        !
        ijkb0 = 0
        !
+       ! OPTIMIZATION
+       ZGEMM('C', 'C', SIZE(vkb,1), SIZE(psi,2), SIZE(vkb,2), (1.0_DP,0.0_DP), &
+             vkb, SIZE(vkb,1), psi, SIZE(psi,1), (1.0_DP,0.0_DP), betapsi, SIZE(betapsi,1))
+       mp_sum(betapsi(:,:), intra_bgrp_comm)
+       !
        DO ibnd = 1, m
 
           ! JRD: Compute becp for just this ibnd here
-          CALL calbec ( n, vkb, psi, becp, ibnd )
+          !
+          ! this is replaced by OPTIMIZATION above
+          !
+          !CALL calbec ( n, vkb, psi, becp, ibnd )
           !write(*,*) 'Computing becp', ibnd
 
           ijkb0 = 0
@@ -93,7 +108,7 @@ SUBROUTINE add_vuspsi( lda, n, m, psi, hpsi )
                       DO ih = 1, nh(nt)
                          ikb = ijkb0 + ih
                          ps(ikb,ibnd) = ps(ikb,ibnd) + &
-                              deeq(ih,jh,na,current_spin) * becp%k(jkb)
+                              deeq(ih,jh,na,current_spin) * betapsi(jkb,ibnd)!becp%k(jkb)
                       END DO
                    END DO
                    ijkb0 = ijkb0 + nh(nt)
