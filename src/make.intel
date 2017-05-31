@@ -10,13 +10,13 @@ MATH_LIBS = ${MKLROOT}/lib/intel64/libmkl_scalapack_lp64.a \
               ${MKLROOT}/lib/intel64/libmkl_blacs_intelmpi_lp64.a \
 	    -Wl,--end-group -lpthread -lm -ldl
 
-LIBS = ${MAGMAROOT}/lib/libmagma.a -lcudart -lcublas -lcusparse $(MATH_LIBS) -lstdc++
+LIBS = ${MAGMAROOT}/lib/libmagma.a -lcuda -lcudart -lcublas -lcusparse $(MATH_LIBS) -lstdc++
 
 DFLAGS += -D__CUDA \
           -D__MAGMA \
           -D__ZHEGVD \
+          -D__CUBLAS \
           -D__NONBLOCKING_FFT
-          #-D__CUBLAS \
 
 CC = mpiicc
 CFLAGS = -O3 -I./ -I${MKLROOT}/include

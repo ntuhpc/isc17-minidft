@@ -14,8 +14,10 @@ MODULE cuda_global
             cuda_err = cudaGetDeviceCount( num_of_gpu )
             cuda_err = cudaSetDevice( mod(mpime, num_of_gpu) )
 #elif defined(__CUDA) && defined(__INTEL)
+            CALL cuInit()
             CALL cudaGetDeviceCount( num_of_gpu )
             CALL cudaSetDevice( mod(mpime, num_of_gpu) )
+            !CALL cudaFree(0)
 #endif
         END SUBROUTINE cuda_startup
 
