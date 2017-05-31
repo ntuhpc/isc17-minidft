@@ -86,11 +86,11 @@ SUBROUTINE add_vuspsi( lda, n, m, psi, hpsi )
        ! OPTIMIZATION
        ALLOCATE( betapsi(SIZE(vkb,2), m) )
        betapsi(:,:) = (0.0_DP,0.0_DP)
-       WRITE(*,*) "[add_vuspsi] Compute ZGEMM"
+       !WRITE(*,*) "[add_vuspsi] Compute ZGEMM"
        CALL ZGEMM('C', 'N', SIZE(vkb,2), m, n, (1.0_DP,0.0_DP), vkb, npwx, &
                   psi, lda, (0.0_DP,0.0_DP), betapsi, SIZE(vkb,2))
        CALL mp_sum(betapsi(:,:), intra_bgrp_comm)
-       WRITE(*,*) "[add_vuspsi] Finish ZGEMM"
+       !WRITE(*,*) "[add_vuspsi] Finish ZGEMM"
        !
        DO ibnd = 1, m
 

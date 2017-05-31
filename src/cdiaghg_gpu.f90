@@ -63,7 +63,7 @@ SUBROUTINE cdiaghg_gpu( n, m, h, s, ldh, e, v )
   ! ... only the first processor diagonalizes the matrix
   !
   IF ( me_bgrp == root_bgrp ) THEN
-     WRITE(*,*) "[CDIAGHG] Compute cdiaghg, n = ", n
+     !WRITE(*,*) "[CDIAGHG] Compute cdiaghg, n = ", n
      CALL magmaf_init()
      !
      ! ... save the diagonal of input S (it will be overwritten)
@@ -188,7 +188,7 @@ SUBROUTINE cdiaghg_gpu( n, m, h, s, ldh, e, v )
      !
      DEALLOCATE( sdiag )
      CALL magmaf_finalize()
-     WRITE(*,*) "[CDIAGHG] Finish cdiaghg, n = ", n
+     !WRITE(*,*) "[CDIAGHG] Finish cdiaghg, n = ", n
      !
   END IF
   !
