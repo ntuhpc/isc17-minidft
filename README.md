@@ -44,5 +44,7 @@ Optimization macros
 Go into folder `benchmark`
 
 ```bash
+$ sudo nvidia-smi -c 3
+$ sudo nvidia-cuda-mps-control -d
 $ mpirun -np 88 -ppn 44 -hosts compute0,compute1 bash run.sh
 ```
