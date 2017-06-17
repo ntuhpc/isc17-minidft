@@ -24,6 +24,7 @@ Go into folder `src`
 ```bash
 $ module load CUDA OpenMPI
 $ source /opt/intel/compilers_and_libraries/linux/bin/compilervars.sh intel64
+$ cp ../fortran_thunking.o .
 $ make comp=intel # make sure you have fortran_thunking.o
 ```
 
